@@ -1,0 +1,65 @@
+{
+	"reactionword": [
+		{
+			"data": [ "…", "It still makes my heart skip a beat.", "Wehenever you do that…" ],
+			"a": [10,11,12,20,21]
+		},
+		{
+			"data": [ "Mm\u2026", "I\u2019m getting dizzy\u2026", "\u2026" ],
+			"a": [10,11,12,20,21]
+		},
+		{
+			"data": [ "Good Morning.",  "What are you doing!",  "That was unexpected." ],
+			"a": [10,11,12,20,21],
+			"pod": [1]
+		},
+		{
+			"data": [ "Thank you\u2026!", "The way you take care of me,", "You know you're starting to spoil me?" ],
+			"a": [1]
+		},
+		{
+			"data": [ "Thank you\u2026!", "I won't be lonely now.", "It'll feel like you're right by my side." ],
+			"a": [1]
+		},
+		{
+			"data": [ "Thanks\u2026!", "I'm won't be lonely anymore, even if we're not together.", "I think about you all day\u2026" ],
+			"a": [1],
+			"pod": [3]
+		},
+		{
+			"data": ["Good Morning.", "\u2026I can\u2019t accept this.", "\u2026Alright, if you insist."],
+			"a": [1, 2],
+			"pod": [0]
+		},
+		{
+			"data": ["Hey.", "What? It\u2019s not a special occasion, is it?", "Thank you\u2026I\u2019m going to take care of it."],
+			"a": [1, 2]
+		},
+
+		{
+			"data": [ "You didn\u2019t have to.",  "All I want is you\u2026",  "That\u2019s all I need to be happy." ],
+			"a": [1,2]
+		},
+		{
+			"data": [ "Thank you\u2026", "For thinking about me.", "I really appreciate it." ],
+			"a": [2]
+		},
+		{
+			"data": ["Good Morning.", "I guess we could go,", "Where are you taking me?"],
+			"a": [3],
+			"pod": [1]
+		},
+		{
+			"data": ["\u2026Hey.", "A date?", "I just felt bad for you."],
+			"a": [3]
+		},
+		{
+			"data": ["\u2026", "I love it.", "I want to do that to you, too."],
+			"a": [20,21,12,10]
+		},
+		{
+			"data":  [ "Mm\u2026", "Your kiss\u2026",  "Is really sweet\u2026" ],
+			"a": [20]
+		}
+	]
+}

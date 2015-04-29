@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
+    <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">    <title>Save your kanojos</title>
+    <style type="text/css">
+.kanojo {
+  height: 150px;
+  width: 150px;
+  background-size: 100% 100%;
+}
+    </style>
+    <script type='text/javascript'>
+//<![CDATA[
+function update_history() {
+  var xhr = new XMLHttpRequest();
+  xhr.onreadystatechange = function() {
+    if(xhr.readyState != 4) return;
+    var r = JSON.parse(xhr.responseText),
+        hdiv = document.getElementById('history_kanojos'),
+        k_img, a;
+    while (hdiv.firstChild) {
+      hdiv.removeChild(hdiv.firstChild);
+    }
+
+    for (var i=0; i<r.kanojos.length; i++) {
+      k_img = document.createElement('img');
+      k_img.setAttribute('class', 'kanojo');
+      k_img.src = r.kanojos[i]['img_url'];
+      k_img.title = r.kanojos[i]['name'];
+      a = document.createElement('a');
+      a.href = r.kanojos[i]['url'];
+      a.target = '_blank';
+      a.appendChild(k_img);
+      hdiv.appendChild(a);
+    }
+  }
+  xhr.open('GET', '/last_kanojos.json', true);
+  xhr.send(false);
+}
+
+window.onload = function(e) {
+  update_history()
+}
+//]]>
+    </script>
+  </head>
+  <body>
+    <div class="container">
+      <form method="post" action="/add_job" enctype="multipart/form-data">
+        <p><b>1. шаг:</b> Скопируйте ссылки на профайлы пользователей или канодж в текстовое поле.<br/>
+<small>(ссылки могут быть разделены пробелами либо строками)</small><br>
+          <textarea name="nya" cols="60" rows="6" style="color: red" disabled>На сервере отключили получение информации о канодже.</textarea>
+        </p>
+        <p><b>2. шаг:</b> Нажми кнопку &quot;Upload&quot;.<br/>
+          <input name="s" type="submit" value="Upload" disabled />
+        </p>
+      </form>
+      <br>
+      <p>Последние сохраненные каноджо:<br/>
+      <div id="history_kanojos">
+      </div>
+    </div>
+  </body>
+</html>

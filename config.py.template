@@ -1,0 +1,30 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+
+# db connection strings
+### MongoDB connection string for main database
+MDB_CONNECTION_STRING = 'mongodb://<user>:<pass>@dsXXXXXX.mongolab.com:<port>/barcodekanojo'
+### Old game database, used for search barcode on 'dress_up' servece and add jobs to 'save kanojo' service
+MDB_CONNECTION_STRING_REAL = 'mongodb://<user>:<pass>@dsXXXXXX.mongolab.com:<port>/barcodekanojo'
+
+# secret key for session
+SESSION_SECRET_KEY = 'secret'
+# ssl certificate/key files path
+SSL_PRIVATEKEY_FILE = 'cert/ssl.key'
+SSL_CERTIFICATE_FILE = 'cert/ssl.cert'
+
+# prime number for generate kanojo from barcode
+BARCODE_SECRET = 236887699
+
+# kanojo secrets
+CLOTHES_MAGIC = 373587883
+KANOJO_SECRET = 'secret'
+
+
+# geo ip secrets
+GEOIP_SECRET1 = 'secret'
+GEOIP_SECRET2 = 'secret'
+GEOIP_SECRET3 = 'secret'
+
+

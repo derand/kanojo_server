@@ -1,0 +1,26 @@
+<html>
+    <head>
+        <!--meta http-equiv="refresh" content="5;url=/" / -->
+        <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
+        <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">    <title>Save your kanojos</title>
+    </head>
+    <body>
+        <h3>Задание добавлено.</h3>
+{% if users %}        <b>Пользователи:</b><br>
+{% for usr in users %}
+			http://www.barcodekanojo.com/user/{{ usr }}/{{ usr }}<br>
+{% endfor %}
+		<br>
+{% endif %}{% if kanojos %}        <b>Каноджи:</b><br>
+{% for k in kanojos %}
+			http://www.barcodekanojo.com/kanojo/{{ k }}/{{ k }}<br>
+{% endfor %}
+		<br>
+{% endif %}
+{% if errors %}
+        <b>Строки с ошибками:</b><br>
+{% for e in errors %}
+			{{ e }}<br>
+{% endfor %}{% endif %}
+    </body>
+</html>

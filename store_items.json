@@ -1,0 +1,177 @@
+{
+
+	"categories": [
+		{
+			"item_category_id": 1,
+			"title": "B coin",
+			"allow_kanojo": 3
+		},
+		{
+			"item_category_id": 6,
+			"image_thumbnail_url": "https://www.barcodekanojo.com/images/store/wardrobe_thm.png",
+			"description": "Buy clothes to your Kanojo or friends for present!",
+			"expand_flag": 0,
+			"title": "Clothes",
+			"allow_kanojo": 3,
+			"group_title": "Wardrobe"
+		},
+		{
+			"item_category_id": 24,
+			"image_thumbnail_url": "https://www.barcodekanojo.com/images/store/category_glasses.png",
+			"description": "Be more fashionable with glasses! Give it to her now!",
+			"expand_flag": 0,
+			"title": "EyeWear",
+			"allow_kanojo": 3,
+			"group_title": "Wardrobe"
+		},
+		{
+			"item_category_id": 46,
+			"image_thumbnail_url": "https://www.barcodekanojo.com/images/store/item_bcoin_thm.png",
+			"description": "B coin",
+			"expand_flag": 0,
+			"title": "B COIN",
+			"allow_kanojo": 7,
+			"group_title": "Wardrobe"
+		},
+		{
+			"item_category_id": 44,
+			"image_thumbnail_url": "https://www.barcodekanojo.com/images/store/item_permanant_kanojo_thm.png",
+			"description": "Wedding Ware For Permanent Kanojo",
+			"expand_flag": 1,
+			"title": "Wedding Ware",
+			"allow_kanojo": 1,
+			"group_title": "Wardrobe"
+		},
+		{
+			"item_category_id": 7,
+			"image_thumbnail_url": "https://www.barcodekanojo.com/images/store/drink_energy_thm.png",
+			"description": "Gain your Stamina.",
+			"expand_flag": 0,
+			"title": "Energy Drinks",
+			"allow_kanojo": 7,
+			"group_title": "Portion"
+		},
+		{
+			"item_category_id": 8,
+			"image_thumbnail_url": "https://www.barcodekanojo.com/images/store/letter_goodbye_thm.png",
+			"description" :"To dump your Kanojo...",
+			"expand_flag": 0,
+			"title": "Goodbye Letter",
+			"allow_kanojo": 3,
+			"group_title": "Other"
+		},
+		{
+			"item_category_id": 22,
+			"image_thumbnail_url": "https://www.barcodekanojo.com/images/store/date_date_thm.png",
+			"description": "Take her to a wonderful place!",
+			"expand_flag": 0,
+			"title": "CATEGORY_SECTION_DATE",
+			"allow_kanojo": 1,
+			"group_title": "Other"
+		}
+	],
+
+	"items": [
+		{
+			"description": "Any KANOJOs love flowers. This item may increase KANOJO's love level.",
+			"title": "A bunch of flowers",
+			"item_id": 1,
+			"image_url": "https://www.barcodekanojo.com/images/store/gift_flower.png",
+			"image_thumbnail_url": "https://www.barcodekanojo.com/images/store/gift_flower_thm.png",
+			"price_b": 25,
+			"category_id": 1
+		},
+		{
+			"purchase_product_id": "jp.co.cybird.barcodekanojo.wardrobe_clothes_0001",
+			"confirm_purchase_message": null,
+			"description": "Dressing time: Daytime\nChic and elegant black jacket.{attention}",
+			"title": "Jacket (black)",
+			"purchasable_level": 1,
+			"image_url": "https://www.barcodekanojo.com/images/store/wardrobe_clothes_0001.png",
+			"item_id": 101,
+			"image_thumbnail_url": "https://www.barcodekanojo.com/images/store/wardrobe_clothes_0001_thm.png",
+			"category_id": 6,
+			"price_t": 1,
+			"group": "Business Wear",
+			"clothes_item_id": 8,
+			"base_store_item_id": 102
+		},
+		{
+			"purchase_product_id": "jp.co.cybird.barcodekanojo.wardrobe_clothes_0009",
+			"confirm_purchase_message": null,
+			"description": "Dressing time: Daytime\nおかえり！ごはんすぐ出来るから待っててね。エプロン姿であなたを待っててくれます。{attention}",
+			"title": "エプロン",
+			"purchasable_level": 1,
+			"item_id": 140,
+			"category_id": 6,
+			"image_url": "https://www.barcodekanojo.com/images/store/wardrobe_clothes_0009.png",
+			"image_thumbnail_url": "https://www.barcodekanojo.com/images/store/wardrobe_clothes_0009_thm.png",
+			"price_t": 3,
+			"group": "Special",
+			"clothes_item_id": 66
+		},
+		{
+			"purchase_product_id": "jp.co.cybird.barcodekanojo.letter_goodbye_0001_0003",
+			"confirm_purchase_message": null,
+			"description": "To dump your Kanojo...",
+			"title": "Goodbye Letter",
+			"purchasable_level": 1,
+			"item_id": 198,
+			"category_id": 8,
+			"price_s": 5,
+			"image_url": "https://www.barcodekanojo.com/images/store/letter_goodbye.png",
+			"image_thumbnail_url": "https://www.barcodekanojo.com/images/store/letter_goodbye_thm.png",
+			"group": "Goodbye Letters",
+			"action": "dump_kanojo"
+		},
+
+
+	],
+
+	"dates": [
+		{
+			"description": "Movie theater as a standard date spot. This item may decrease KANOJO's love level towards her boyfriend.",
+			"title": "Movie",
+			"image_url": "https://www.barcodekanojo.com/images/store/date_movie.png",
+			"item_id": 20,
+			"image_thumbnail_url": "https://www.barcodekanojo.com/images/store/date_movie_thm.png",
+			"price_b": 5,
+			"price_s": 5,
+			"category_id": 1
+		},
+		{
+			"description": "All dates from tickets starts from 500 id"
+		},
+		{
+			"description": "Wonderful date against the background of Mt. Fuji!{date1}",
+			"title": "Mt.Fuji",
+			"confirm_use_message": null,
+			"image_url": "https://www.barcodekanojo.com/images/store/date_fuji.png",
+			"item_id": 500,
+			"image_thumbnail_url": "https://www.barcodekanojo.com/images/store/date_fuji.png",
+			"price_t": 1,
+			"group": "ITEM_SECTION_DATE",
+			"category_id": 22,
+			"duration_of_date": 43200,
+			"background_image_url": "https://www.barcodekanojo.com/images/profile_bkgr/date_mt_fuji_daytime.jpg",
+			"background_image_url_night": "https://www.barcodekanojo.com/images/profile_bkgr/date_mt_fuji_evening.jpg",
+			"hidden_in_store": true
+		},
+
+		{
+			"description": "Impressive Dating at amusement park!{date12h}",
+			"title": "Amusement park",
+			"confirm_use_message": null,
+			"image_url": "https://www.barcodekanojo.com/images/store/date_park.png",
+			"item_id": 506,
+			"image_thumbnail_url": "https://www.barcodekanojo.com/images/store/date_park_thm.png",
+			"price_t": 1,
+			"group": "ITEM_SECTION_DATE",
+			"category_id": 22,
+			"duration_of_date": 43200,
+			"background_image_url": "https://www.barcodekanojo.com/images/profile_bkgr/date_amusementp_daytime.jpg",
+			"background_image_url_night": "https://www.barcodekanojo.com/images/profile_bkgr/date_amusementp_evening.jpg",
+			"hidden_in_store": true
+		}
+	]
+}

@@ -1,0 +1,233 @@
+<html>
+<head>
+    <title>Barcode Statistic</title>
+    <style type="text/css">
+.container {
+padding: 10px 0 10px 0;
+margin-bottom: 7px;
+margin-top: 7px;
+background-color: #eeeeee;
+border-radius: 6px;    
+}
+.chart {
+padding: 7px 4px 7px 4px;
+}
+    </style>
+    <script type="text/javascript" src="http://code.jquery.com/jquery-1.9.1.js"></script>
+    <script src="http://code.highcharts.com/highcharts.js"></script>
+    <script type="text/javascript">
+//<![CDATA[
+$(function () {
+    data = {"brow_position": {"-0.5": 18051, "0.5": 18943, "1": 9373, "0.4": 15039, "0.1": 14735, "-0.7": 16047, "0.2": 28430, "0.6": 14906, "0.3": 16159, "-0.9": 19660, "-0.2": 16630, "-2": 1, "0.9": 22241, "-0.3": 17908, "-1": 10408, "-0.6": 19075, "0.7": 18479, "-0.1": 13439, "0.8": 15628, "-0.8": 19060, "-0.4": 15582}, "hair_type": {"1": 17577, "2": 17795, "3": 16457, "4": 16102, "5": 14635, "6": 15526, "7": 17668, "8": 14558, "9": 16741, "10": 16181, "11": 17682, "12": 20895, "13": 17282, "14": 14272, "15": 15500, "16": 16427, "17": 14700, "18": 14277, "19": 18433, "20": 19875, "21": 14227, "22": 15620, "23": 16106, "24": 16163, "25": 15553, "26": 16029, "99": 1}, "clothes_type": {"1": 81576, "2": 88788, "3": 104880, "4": 82089, "5": 68918, "902": 1, "904": 1, "37": 1, "912": 1, "908": 1, "909": 1, "60": 2, "913": 2, "922": 1, "923": 1, "27": 1, "37": 1, "49": 2, "914": 1, "63": 1, "71": 1, "77": 1, "8": 1, "11": 1, "10": 2, "99": 1, "14": 2, "16": 3, "51": 1}, "brow_type": {"1": 34606, "2": 31358, "3": 35587, "4": 37276, "5": 33338, "6": 35811, "7": 40050, "8": 33540, "9": 34251, "10": 41477, "11": 35252, "12": 33735, "99": 1}, "clothes_color": {"1": 73709, "2": 77234, "3": 69894, "4": 82768, "5": 76958, "6": 45718, "99": 1}, "body_type": {"1": 426281, "99": 1}, "ear_type": {"1": 216338, "2": 209943, "99": 1}, "mouth_position": {"0.5": 14470, "-0.5": 17198, "1": 10128, "0.4": 18153, "0.1": 16913, "-0.7": 18062, "0.2": 23382, "0.3": 14405, "0.6": 16854, "-0.9": 15066, "-0.8": 17813, "-0.4": 17676, "0.9": 17319, "-0.3": 26064, "0.7": 17497, "-0.6": 16136, "-0.1": 18950, "0.8": 17363, "-0.2": 15344, "-1": 10628}, "eye_type": {"16": 2, "101": 12120, "102": 27247, "103": 33665, "104": 27216, "105": 35006, "106": 28201, "107": 27903, "108": 28325, "109": 27816, "110": 27889, "111": 29898, "112": 29139, "113": 28780, "114": 30933, "115": 32141, "199": 1}, "fringe_type": {"1": 19227, "2": 18695, "3": 17087, "4": 18340, "5": 20919, "6": 24889, "7": 22740, "8": 18441, "9": 16490, "10": 18571, "11": 19007, "12": 20224, "13": 19557, "14": 16573, "15": 18339, "16": 22057, "17": 19800, "18": 16671, "19": 22263, "20": 18904, "21": 18689, "22": 18798, "99": 1}, "skin_color": {"1": 16237, "2": 1880, "3": 3337, "4": 4069, "5": 141, "6": 8, "7": 13151, "8": 1877, "9": 3400, "10": 96836, "11": 183263, "12": 102083}, "hair_color": {"1": 306, "2": 1794, "3": 38, "4": 36, "5": 1984, "6": 8, "7": 11171, "8": 1694, "9": 10928, "10": 1632, "11": 440, "12": 335, "13": 4023, "14": 10, "15": 54261, "16": 6, "17": 11332, "18": 28584, "19": 8443, "20": 42029, "21": 244836, "22": 4, "23": 8, "24": 2379, "99": 1}, "nose_type": {"1": 59678, "2": 70372, "3": 82618, "4": 67218, "5": 74734, "6": 71661, "99": 1}, "eye_color": {"1": 13, "2": 1624, "3": 1635, "4": 16347, "5": 596, "6": 62675, "7": 15982, "8": 13, "9": 28233, "10": 16989, "11": 2386, "12": 279788, "99": 1}, "race_type": {"1": 35812, "2": 30667, "3": 21823, "4": 3302, "5": 6400, "6": 208616, "7": 72314, "8": 36802, "9": 8068, "10": 2477, "99": 1}, "mouth_type": {"1": 40610, "2": 34222, "3": 34282, "4": 34917, "5": 40328, "6": 33459, "7": 37007, "8": 33376, "9": 35349, "10": 35482, "11": 34132, "12": 33117, "99": 1}, "spot_type": {"1": 321397, "2": 16559, "3": 18215, "4": 17611, "5": 17798, "6": 17066, "7": 17635, "99": 1}, "face_type": {"1": 67498, "2": 69111, "3": 68270, "4": 71989, "5": 76708, "6": 72705, "99": 1}, "glasses_type": {"1": 367613, "2": 58668, "99": 1}, "accessory_type": {"1": 338552, "2": 20495, "3": 23567, "4": 20909, "5": 22759}, "eye_position": {"0.5": 17356, "-0.5": 15029, "1": 9037, "0.4": 16563, "0.2": 28768, "-0.7": 15921, "0.1": 13370, "0.6": 17216, "10": 1, "0.3": 16420, "-0.9": 20160, "-0.4": 17179, "0.9": 21878, "-0.3": 16796, "-1": 8574, "-0.6": 14838, "0.7": 17062, "-0.1": 18026, "0.8": 18311, "-0.2": 16580, "-0.8": 20262}};
+
+    Highcharts.setOptions({
+        global: {
+            useUTC: false
+        },
+        chart: {
+            backgroundColor:'rgba(255, 255, 255, 0.5)',
+            borderWidth: 1,
+            borderColor: 'rgba(0, 0, 0, 0.1)',
+        }
+    });
+
+
+    var eye_color = [];
+    $.each(data.eye_color, function (key, val) {
+        eye_color.push({
+            name: key,
+            y: val,
+            sliced: true
+        })
+    });
+    $('#eye_color').highcharts({
+        chart: {
+            type: 'column'
+        },
+        title: {
+            text: 'Eye color'
+        },
+        xAxis: {
+            type: 'category',
+            labels: {
+                formatter: function() {
+                    if (this.value < 13) {
+                        var s = '0'+this.value;
+
+                        return '<img src="c_eye_'+s.substr(s.length-2)+'.jpg" alt="" style="vertical-align: middle; width: 45px; height: 45px"/>';
+                    } else {
+                        return this.value;
+                    }
+                },
+                useHTML: true
+            }
+        },
+        yAxis: {
+            title: {
+                text: 'Barcodes count'
+            }
+        },
+        legend: {
+            enabled: false,
+            layout: 'vertical',
+            align: 'right',
+            verticalAlign: 'middle',
+            borderWidth: 0
+        },
+        plotOptions: {
+            series: {
+                borderWidth: 0,
+                dataLabels: {
+                    enabled: true,
+                }
+            }
+        },
+        tooltip: {
+            headerFormat: '<span style="font-size:11px">{series.name}</span><br>',
+            pointFormat: '<span style="color:{point.color}">{point.name}</span>: <b>{point.y}</b> barcodes<br/>'
+        },
+        series: [{
+            name: 'Eye color',
+            colorByPoint: true,
+            data: eye_color
+        }]
+    });
+
+
+    var hair_color = [];
+    $.each(data.hair_color, function (key, val) {
+        hair_color.push({
+            name: key,
+            y: val,
+            sliced: true
+        })
+    });
+    $('#hair_color').highcharts({
+        chart: {
+            type: 'column'
+        },
+        title: {
+            text: 'Hair color'
+        },
+        xAxis: {
+            type: 'category',
+            labels: {
+                formatter: function() {
+                    console.log(this.value);
+                    if (this.value < 25) {
+                        var s = '0'+this.value;
+
+                        return '<img src="c_hair_'+s.substr(s.length-2)+'.jpg" alt="" style="vertical-align: middle; width: 60px; height: 66"/>';
+                    } else {
+                        return this.value;
+                    }
+                },
+                useHTML: true
+            }
+        },
+        yAxis: {
+            title: {
+                text: 'Barcodes count'
+            }
+        },
+        legend: {
+            enabled: false,
+            layout: 'vertical',
+            align: 'right',
+            verticalAlign: 'middle',
+            borderWidth: 0
+        },
+        plotOptions: {
+            series: {
+                borderWidth: 0,
+                dataLabels: {
+                    enabled: true,
+                }
+            }
+        },
+        tooltip: {
+            headerFormat: '<span style="font-size:11px">{series.name}</span><br>',
+            pointFormat: '<span style="color:{point.color}">{point.name}</span>: <b>{point.y}</b> barcodes<br/>'
+        },
+        series: [{
+            name: 'Hair color',
+            colorByPoint: true,
+            data: hair_color
+        }]
+    });
+
+
+    var skin_color = [];
+    $.each(data.skin_color, function (key, val) {
+        skin_color.push({
+            name: key,
+            y: val,
+            sliced: true
+        })
+    });
+    $('#skin_color').highcharts({
+        chart: {
+            type: 'column'
+        },
+        title: {
+            text: 'Skin color'
+        },
+        xAxis: {
+            type: 'category',
+            labels: {
+                formatter: function() {
+                    console.log(this.value);
+                    if (this.value < 25) {
+                        var s = '0'+this.value;
+
+                        return '<img src="c_skin_'+s.substr(s.length-2)+'.jpg" alt="" style="vertical-align: middle; width: 60px; height: 66"/>';
+                    } else {
+                        return this.value;
+                    }
+                },
+                useHTML: true
+            }
+        },
+        yAxis: {
+            title: {
+                text: 'Barcodes count'
+            }
+        },
+        legend: {
+            enabled: false,
+            layout: 'vertical',
+            align: 'right',
+            verticalAlign: 'middle',
+            borderWidth: 0
+        },
+        plotOptions: {
+            series: {
+                borderWidth: 0,
+                dataLabels: {
+                    enabled: true,
+                }
+            }
+        },
+        tooltip: {
+            headerFormat: '<span style="font-size:11px">{series.name}</span><br>',
+            pointFormat: '<span style="color:{point.color}">{point.name}</span>: <b>{point.y}</b> barcodes<br/>'
+        },
+        series: [{
+            name: 'Skin color',
+            colorByPoint: true,
+            data: skin_color
+        }]
+    });
+
+});
+//]]
+    </script>
+</head>
+<body>
+    <div class="container">
+        <div id="eye_color" class="chart" style="min-width: 310px; height: 400px; margin: 0 auto"></div>
+        <div id="hair_color" class="chart" style="min-width: 310px; height: 400px; margin: 0 auto"></div>
+        <div id="skin_color" class="chart" style="min-width: 310px; height: 400px; margin: 0 auto"></div>
+    </div>
+</body>
+</html>

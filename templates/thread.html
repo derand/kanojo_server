@@ -1,0 +1,66 @@
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+<title>Barcode Kanojo</title>
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8">
+<link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+<link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
+<style type="text/css"> body { margin: 0; padding: 8px; margin-bottom: auto; } blockquote blockquote { margin-left: 0em } form { margin-bottom: 0px } form .trap { display:none } .postarea { text-align: center } .postarea table { margin: 0px auto; text-align: left } .thumb { border: none; float: left; margin: 2px 20px } .nothumb { float: left; background: #eee; border: 2px dashed #aaa; text-align: center; margin: 2px 20px; padding: 1em 0.5em 1em 0.5em; } .reply blockquote, blockquote :last-child { margin-bottom: 0em } .reflink a { color: inherit; text-decoration: none } .reply .filesize { margin-left: 20px } .userdelete { float: right; text-align: center; white-space: nowrap } .replypage .replylink { display: none }
+.deleted_post {
+  color:red;
+  font-style:italic;
+}
+.underline {
+	text-decoration: underline;
+}
+</style>
+<link rel="alternate stylesheet" type="text/css" href="/static/css/burichan.css" title="Burichan">
+<link rel="stylesheet" type="text/css" href="/static/css/futaba.css" title="Futaba">
+<link rel="alternate stylesheet" type="text/css" href="/static/css/gurochan.css" title="Gurochan">
+<script type="text/javascript">var style_cookie="wakabastyle";</script><script type="text/javascript" src="/static/js/wakaba3.js"></script>
+</head>
+<body class="replypage">  <div class="adminbar"> [<a href="javascript:set_stylesheet_frame('Burichan','list')">Burichan</a>]  [<a href="javascript:set_stylesheet_frame('Futaba','list')">Futaba</a>]  [<a href="javascript:set_stylesheet_frame('Gurochan','list')">Gurochan</a>]  </div> <div class="logo">Barcode Kanojo topic</div>
+<hr> <div class="postarea"> <form id="postform" action="/post" method="post" enctype="multipart/form-data"> <input type="hidden" name="task" value="post"><input type="hidden" name="parent" value="{{ threadid }}"><div class="trap">Leave these fields empty (spam trap): <input type="text" name="name" size="28"><input type="text" name="link" size="28">
+</div> <table><tbody>
+<tr>
+  <td class="postblock">Имя</td>
+  <td><input type="text" name="nya1" size="34" maxlength="75" accesskey="n"><input type="submit" value="Отправить" /></td>
+</tr>
+<tr>
+  <td class="postblock">Сообщение</td>
+  <td><textarea name="nya2" cols="60" rows="6"></textarea></td>
+</tr>
+<tr>
+  <td class="postblock">Пароль</td>
+  <td><input type="password" name="password" size="8" disabled /> (для удаления файлов и сообщений)</td>
+</tr>
+<tr><td colspan="2"> <div class="rules"><table><tbody>
+<!--tr>
+<td class="prohibition">ЗАПРЕЩЕНО:</td> <td class="prohibition"> <ul>
+<li>детская эротика/порнография</li> <li>троллинг, в т.ч. на тему российско-украинских отношений</li></ul>
+</td> </tr-->
+<tr>
+<td class="info">Форматирование текста:</td> <td class="info"></td></tr>
+<tr><td><ul style="margin-left: 30px; margin-top: 0; margin-bottom: 0; padding-left: 0;"> <li> **<b>bold</b>**</li> <li> *<i>italic</i>* and _<i>another italic</i>_</li>  <li> __<span class="underline">underline</span>__</li>  <li> --<strike>strike</strike>--</li>  <li> `<code>mono</code>`</li> <li> %%<span class="spoiler">spoiler</span>%%</li>  </ul>
+</td> </tr>
+</tbody></table></div>
+</td><td></td></tr>
+</tbody></table>
+</form>
+</div><hr>
+<form id="delform" action="/cgi-bin/wakaba.pl/b/" method="post">    <div id="thread-{{ threadid }}">
+{% for post in posts %}
+		{% if post.id == threadid %}{% if post.img %}<span class="filesize">Файл: <a target="_blank" href="{{ post.img }}">{{ post.img_name() }}</a> {% if post.img_info_str() %}  - (<em>{{ post.img_info_str() }}</em>){% endif %}</span>  <br><a target="_blank" href="{{ post.img }}"> <img src="{{ post.thumb }}" {% if post.thumb_width %}width="{{ post.thumb_width }}" {% endif %}{% if post.thumb_height %}height="{{ post.thumb_height }}" {% endif %} class="thumb"></a>{% endif %}    <a name="{{ post.id }}"></a> <label><input type="checkbox" name="delete" value="{{ post.id }}"> <span class="filetitle">{% if post.title %}{{ post.title }}{% endif %}</span> <span class="postername">{{ post.poster }}</span>  {{ post.date_string() }}</label> <span class="reflink">  <a href="#{{ post.id }}" onclick="javascript:highlight('{{ post.id }}');">No.</a> <a href="javascript:insert('&gt;&gt;{{ post.id }}')">{{ post.id }}</a> </span>   <blockquote>{% if post.post %}{{ post.post|safe }}{% endif %}</blockquote>{% else %} <table><tbody><tr>
+<td class="doubledash">&gt;&gt;</td>  <td class="reply" id="reply{{ post.id }}"> <a name="{{ post.id }}"></a> <label><input type="checkbox" name="delete" value="{{ post.id }}"><span class="replytitle">{% if post.title %}{{ post.title }}{% endif %}</span> <span class="commentpostername">{{ post.poster }}</span>   {{ post.date_string() }}</label> <span class="reflink">  <a href="#{{ post.id }}" onclick="javascript:highlight('{{ post.id }}');">No.</a> <a href="javascript:insert('&gt;&gt;{{ post.id }}')">{{ post.id }}</a> </span> {% if post.deleted %}<span class="deleted_post">deleted</span>{% endif %}  {% if post.img %}<br><span class="filesize">Файл: <a target="_blank" href="{{ post.img }}">{{ post.img_name() }}</a>{% if post.img_info_str() %}  - (<em>{{ post.img_info_str() }}</em>){% endif %}</span>  <br><a target="_blank" href="{{ post.img }}"> <img src="{{ post.thumb }}" {% if post.thumb_width %}width="{{ post.thumb_width }}" {% endif %}{% if post.thumb_height %}height="{{ post.thumb_height }}" {% endif %} class="thumb"></a>{% endif %}    <blockquote>{% if post.post %}{{ post.post|safe }}{% endif %}</blockquote> </td>
+</tr></tbody></table>{% endif %}
+	{% endfor %}
+</div>
+<!--thread--> <br clear="left"><hr>
+<!--table class="userdelete">
+  <tbody>
+    <tr>
+      <td>Удалить сообщение [<input type="checkbox" name="imageonly" id="imageonly"><label for="imageonly">только файл</label>]<br>Пароль <input type="password" name="password" size="8" autocomplete="off">&nbsp;<input name="deletepost" value="Удалить" type="submit"></td>
+    </tr>
+  </tbody>
+</table -->
+</form> <p class="footer"> - <a href="http://wakaba.c3.cx/">wakaba</a> + <a href="http://www.2chan.net/">futaba</a> + <a href="http://www.1chan.net/futallaby/">futallaby</a> -</p> </body>
+</html>
