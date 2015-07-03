@@ -12,6 +12,6 @@ REACTIONWORD_PY="$DIR/reactionword_tests.py"
 
 #$PY $USERS_PY && $PY $KANOJO_PY && $PY $STORE_PY && $PY $REACTIONWORD_PY
 
-$PY user_tests.py && $PY kanojo_tests.py && $PY store_tests.py && $PY reactionword_tests.py
+$PY user_tests.py && $PY kanojo_tests.py && $PY store_tests.py && $PY reactionword_tests.py && $PY activity_tests.py
 
 exit $?

@@ -1,0 +1,89 @@
+/*
+	Used for web pages: kanojo and user
+*/
+body {
+  line-height: 18px;
+}
+h1 {
+  line-height: 24px;
+  letter-spacing: 0px;
+  font-size: 24px;
+  font-variant: normal;
+  font-style: normal;
+  font-weight: bolder;
+  margin: 0px 0px 0px 0px;
+  padding: 0px;
+}
+#maincontent {
+  text-align: left;
+  padding: 0px 20px 10px 0px;
+  max-width: 590px;
+}
+.name_kanojo {
+  font-size: 45px;
+  line-height: 45px;
+  color: #F39;
+}
+.corner_name {
+  color: #DD1166;
+  margin: 10px 0px 5px 0px;
+}
+table td tr {
+  margin: 0;
+  padding: 0;
+  border: 0px solid;
+}
+#portrate.middle {
+  width: 160px;
+  height: 160px;
+  margin-right: 10px;
+  background-image: url(/images/common/bg_kj_portrate.png);
+  background-position: top;
+  background-repeat: repeat-x;
+}
+#portrate {
+  background-center: right;
+  border-radius: 10px;
+  -moz-border-radius: 10px;
+  -webkit-border-radius: 10px;
+  padding: 0px 0px 0px 0px;
+  border: #FFF 4px solid;
+}
+
+.user_info {
+  border-bottom: dotted 1px #CCC;
+  padding: 5px 0px 5px 0px;
+  margin: 5px 0px 5px 0px;
+  font-weight: bold;
+}
+.bb_indicator {
+  height: 12px;
+  background-color: #EEE;
+  border: #999 1px solid;
+  -moz-box-shadow: 0 0px 0px #BBBBBB;
+  -webkit-box-shadow: 0 0px 0px #BBBBBB;
+  -moz-border-radius: 6px;
+  -webkit-border-radius: 6px;
+  margin: 0px 0px 4px 0px;
+}
+.bb_indicator_bar {
+  -moz-border-radius: 6px;
+  -webkit-border-radius: 6px;
+}
+.msg_small_alert {
+  color: #D99;
+  font-size: 12px;
+  line-height: 16px;
+  padding-left: 15px;
+}
+.icon {
+  background-position: right;
+  border-radius: 5px;
+  -moz-border-radius: 5px;
+  -webkit-border-radius: 5px;
+  padding: 0px;
+  margin: 4px 8px 4px 0px;
+  background-image: url(/images/common/bg_kj_portrate.png);
+  background-position: top;
+  background-repeat: repeat-x;
+}

@@ -2,11 +2,281 @@
 <html>
   <head>
     <meta http-equiv="content-type" content="text/html; charset=UTF-8">
-    <title>Kanojo</title>
+    <meta name="viewport" content="width=device-width; height=device-height; initial-scale=1.0; maximum-scale=1.0; user-scalable=no;"/>
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <title>Barcode KANOJO: Timeline</title>
+  
+    <style type="text/css">
+#container {
+/*  width: 320px;
+  border: 1px solid #999999;*/
+}
+.corner_name {
+  color: #DD1166;
+  margin: 10px 0px 5px 0px;
+}
+h1 {
+  line-height: 24px;
+  letter-spacing: 0px;
+  font-size: 24px;
+  font-variant: normal;
+  font-style: normal;
+  font-weight: bolder;
+  margin: 0px 0px 0px 0px;
+  padding: 0px;
+}
+
+.activities_box {
+  width: 100%;
+  height: 60px;
+  margin: 5px 0px 5px 0px auto;
+  padding: 0px;
+  text-align: left;
+  display: table;
+  position: relative;
+/*  background-image: url(/img/bg_activity.png);*/
+  background-position: 0px 0px;
+  background-repeat: repeat-x;
+  border-bottom: solid 1px #DDD;
+  border-top: solid 1px #FFF;
+}
+.c_activities_box {
+  margin: 0px auto;
+  padding: 5px;
+  vertical-align: middle;
+}
+.l_activities_box {
+  float: left;
+  width: 60px;
+  height: 50px;
+  padding-left: 10px;
+}
+.r_activities_box {
+  float: right;
+  width: 60px;
+  height: 50px;
+  padding: 0px;
+}
+.icon {
+  background-position: right;
+  border-radius: 5px;
+  -moz-border-radius: 5px;
+  -webkit-border-radius: 5px;
+  padding: 0px;
+  margin: 4px 8px 4px 0px;
+/*  background-image: url(/img/bg_kj_portrate.png);*/
+  background-position: top;
+  background-repeat: repeat-x;
+}
+    </style>
+  
+
+
+    <script type="text/javascript">//<![CDATA[
+// AJAX object
+var ajax = {};
+ajax.x = function() {
+    if (typeof XMLHttpRequest !== 'undefined') {
+        return new XMLHttpRequest();  
+    }
+    var versions = [
+        "MSXML2.XmlHttp.6.0",
+        "MSXML2.XmlHttp.5.0",   
+        "MSXML2.XmlHttp.4.0",  
+        "MSXML2.XmlHttp.3.0",   
+        "MSXML2.XmlHttp.2.0",  
+        "Microsoft.XmlHttp"
+    ];
+
+    var xhr;
+    for(var i = 0; i < versions.length; i++) {  
+        try {  
+            xhr = new ActiveXObject(versions[i]);  
+            break;  
+        } catch (e) {
+        }  
+    }
+    return xhr;
+};
+ajax.send = function(url, callback, method, data, sync) {
+    var x = ajax.x();
+    x.open(method, url, sync);
+    x.onreadystatechange = function() {
+        if (x.readyState == 4) {
+            callback(x.responseText)
+        }
+    };
+    if (method == 'POST') {
+        x.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+    }
+    x.send(data)
+};
+ajax.get = function(url, data, callback, sync) {
+    var query = [];
+    for (var key in data) {
+        query.push(encodeURIComponent(key) + '=' + encodeURIComponent(data[key]));
+    }
+    ajax.send(url + (query.length ? '?' + query.join('&') : ''), callback, 'GET', null, sync)
+};
+ajax.post = function(url, data, callback, sync) {
+    var query = [];
+    for (var key in data) {
+        query.push(encodeURIComponent(key) + '=' + encodeURIComponent(data[key]));
+    }
+    ajax.send(url, callback, 'POST', query.join('&'), sync)
+};
+
+function create_activity_box(activity) {
+  var activities_box = document.createElement('div'),
+      l_activities_box,
+      c_activities_box,
+      r_activities_box=undefined,
+      tmp_el, tmp_el2;
+
+  activities_box.className = 'activities_box';
+  activities_box.setAttribute('id', 'activity'+activity.id);
+
+  // left
+  l_activities_box = document.createElement('div');
+  l_activities_box.className = 'l_activities_box';
+  tmp_el = document.createElement('a');
+  tmp_el2 = document.createElement('img');
+  tmp_el2.className = 'icon';
+  tmp_el2.setAttribute('height', 50);
+  tmp_el2.setAttribute('width', 50);
+  tmp_el.appendChild(tmp_el2);
+  l_activities_box.appendChild(tmp_el);
+  if (activity.activity_type == 2) {
+    tmp_el.setAttribute('href', activity.kanojo_url);
+    tmp_el2.setAttribute('src', activity.kanojo.profile_image_url);
+  } else {
+    tmp_el.setAttribute('href', activity.user_url);
+    tmp_el2.setAttribute('src', activity.user.profile_image_url);
+  }
+
+  // right
+  if ([5, 8].indexOf(activity.activity_type) > -1) {
+    r_activities_box = document.createElement('div');
+    r_activities_box.className = 'r_activities_box';
+    tmp_el = document.createElement('a');
+    tmp_el2 = document.createElement('img');
+    tmp_el2.className = 'icon';
+    tmp_el2.setAttribute('height', 50);
+    tmp_el2.setAttribute('width', 50);
+    tmp_el.appendChild(tmp_el2);
+    r_activities_box.appendChild(tmp_el);
+    tmp_el.setAttribute('href', activity.kanojo_url);
+    tmp_el2.setAttribute('src', activity.kanojo.profile_image_url);
+  }
+
+  // center
+  c_activities_box = document.createElement('div');
+  c_activities_box.className = 'c_activities_box';
+  tmp_el = document.createElement('span');
+  tmp_el.setAttribute('html', true);
+  tmp_el.innerHTML = activity.activity;
+  c_activities_box.appendChild(tmp_el);
+  tmp_el = document.createElement('br');
+  c_activities_box.appendChild(tmp_el);
+  tmp_el = document.createElement('span');
+  tmp_el.setAttribute('id', 'activity'+activity.id+'_time');
+  tmp_el.setAttribute('value', activity.created_timestamp);
+  //tmp_el.innerHTML = '@ 7 mins ago';
+  c_activities_box.appendChild(tmp_el);
+
+  activities_box.appendChild(l_activities_box);
+  if (r_activities_box) {
+    activities_box.appendChild(r_activities_box);
+  }
+  activities_box.appendChild(c_activities_box);
+  return activities_box;
+};
+
+function update_time(arr) {
+  function val_str(val, suffix) {
+    var rv = val + ' ' + suffix;
+    if (val > 1) {
+      rv += 's';
+    }
+    return rv;
+  }
+
+  var i, el, val,
+      curr_time = Math.round(new Date().getTime()/1000.0);
+  for (i=0; i<arr.length; i++) {
+    el = arr[i].lastChild.lastChild;
+    val = curr_time - el.getAttribute('value');
+    if (val < 60) {
+      val = 'less than minute';
+    } else {
+      val = Math.floor(val / 60);
+      if (val < 60) {
+        val = val_str(val, 'min');
+      } else {
+        val = Math.floor(val / 60);
+        if (val < 24) {
+          val = val_str(val, 'hour');
+        } else {
+          val = Math.floor(val / 24);
+          if (val < 7) {
+            val = val_str(val, 'day');
+          } else {
+            val = val / 7;
+            if (val < 5) {
+              val = val_str(Math.floor(val), 'week');
+            } else {
+              val = Math.floor(val * 7 / 30.5);
+              if (val < 12) {
+                val = val_str(val, 'year');
+              }
+            }
+          }
+        }
+      }
+    }
+    el.innerHTML = '@ ' + val + ' ago';
+  }
+}
+
+var since_id = 0;
+
+function worker() {
+    ajax.get('/last_activity.json', {'since_id': since_id}, function(response) {
+        data = JSON.parse(response);
+        //console.log(data.code, since_id);
+        if (data.code == 200) {
+            var arr = Array(),
+                activities_box, i,
+                container = document.getElementById("container");
+            for (i=(data.activities.length-1); i>=0; i--) {
+                since_id = Math.max(data.activities[i].id, since_id);
+                activities_box = create_activity_box(data.activities[i]);
+                //arr.splice(0, 0, activities_box);
+                arr.push(activities_box);
+            }
+            for (i=0; i<arr.length; i++) {
+                if (container.firstChild) {
+                    container.insertBefore(arr[i], container.firstChild);
+                } else {
+                    container.appendChild(arr[i]);
+                }
+            }
+        }
+        update_time(container.getElementsByClassName('activities_box'));
+    });
+
+    window.setTimeout(worker, 60 * 1000);
+}
+
+window.onload = function() {
+    worker();
+}
+//]]>  
+    </script>
   </head>
   <body>
-    <div class="container">
-      In progress.  
+    <h1 class="corner_name" id="corner_name">Latest Activities</h1>
+    <div id="container">
     </div>
   </body>
 </html>

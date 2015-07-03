@@ -1,9 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-__version__ = '0.1'
 __author__ = 'Andrey Derevyagin'
-__copyright__ = 'Copyright © 2014'
+__copyright__ = 'Copyright © 2014-2015'
 
 import json
 import copy

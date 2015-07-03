@@ -1,0 +1,63 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!-- saved from url=(0105)https://web.archive.org/web/20130825025857/http://www.barcodekanojo.com/kanojo/1024020/%E3%81%86%E3%81%84 -->
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<title>Barcode KANOJO: {{ name }} Profile</title>
+		<link rel="stylesheet" href="{{ url_for('static', filename='css/common.css') }}">
+	</head>
+	<body>
+		<div id="maincontent">
+			<!-- public other user profile -->
+			<h1 class="name_kanojo">{{ name }}</h1>
+			<table cellpadding="0" cellspacing="0" border="0" width="100%"><tbody>
+				<tr valign="top">
+					<td width="160">
+						<div id="portrate" class="middle">
+							<img src="{{ profile_image_full_url }}" width="160" height="160">
+						</div>
+					</td>
+					<td>
+						<table cellpaddong="0" cellspacing="0" border="0" width="100%"><tbody>
+							<tr valign="top">
+								<td width="35%" class="user_info" style="color:#AAA;">Birthday</td>
+								<td width="65%" class="user_info">{{ birthday|date_format }}</td>
+							</tr>
+							<tr valign="top" class="stripe">
+								<td width="35%" class="user_info" style="color:#AAA;">Place of birth</td>
+								<td width="65%" class="user_info">Somewhere</td>
+							</tr>
+							<tr valign="top">
+								<td width="35%" class="user_info" style="color:#AAA;">Nationality</td>
+								<td width="65%" class="user_info">None</td>
+							</tr>
+							<tr valign="top" class="stripe">
+								<td width="35%" class="user_info" style="color:#AAA;">Steady</td>
+								<td width="65%" class="user_info">
+								<div>
+{% if owner_user.id == 0 %}Free{% else %}<a href="/user/{{ owner_user.id }}.html">{{ owner_user.name }}</a>{% endif %}
+								</div>
+								</td>
+							</tr>
+							<tr valign="top">
+								<td width="35%" class="user_info" style="color:#AAA;">Love level</td>
+								<td width="65%" class="user_info"><div class="bb_indicator"><img src="{% if red_level(love_gauge) %}/images/common/ind_red.png{% else %}/images/common/ind_blue.png{% endif %}" class="bb_indicator_bar" height="12" width="{{ love_gauge }}%" style="border-right:1px solid #999"></div></td>
+							</tr>
+						</tbody></table>
+
+					</td>
+				</tr>
+			</tbody></table>
+
+			<h1 class="corner_name">Followers : {{ followers|length }}</h1>
+{% if len_zero(followers) %}<div class="msg_small_alert">KANOJO doesn't have Follower.</div>{% else %}
+{% for u in followers %}{% if is_dict(u) %}			<span>
+				<a href="/user/{{ u.id }}.html">
+					<img class="icon" src="{{ u.profile_image_url }}" alt="{{ u.name }}" border="0" width="50">
+				</a>
+			</span>
+{% endif %}{% endfor %}
+{% endif %}
+		</div>
+	</body>
+</html>
