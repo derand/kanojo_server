@@ -15,11 +15,24 @@ import json
 import copy
 from random import randint
 import hashlib
+from collections import OrderedDict
 
 
 CLEAR_NONE = 0
 CLEAR_SELF = 1
 CLEAR_BARCODE = 3
+
+def kanojo_order_dict_cmp(x, y):
+    order = ('status', 'avatar_background_image_url', 'in_room', 'mascot_enabled', 'mouth_type', 'skin_color', 'body_type', 'race_type', 'spot_type', 'birth_day', 'sexual', 'id', 'recognition', 'on_advertising', 'clothes_type', 'brow_type', 'consumption', 'like_rate', 'eye_position', 'source', 'location', 'birth_month', 'follower_count', 'goods_button_visible', 'accessory_type', 'birth_year', 'possession', 'hair_type', 'clothes_color', 'relation_status', 'ear_type', 'brow_position', 'barcode', 'love_gauge', 'profile_image_url', 'voted_like', 'eye_color', 'glasses_type', 'hair_color', 'face_type', 'nationality', 'advertising_product_url', 'geo', 'emotion_status', 'eye_type', 'mouth_position', 'name', 'fringe_type', 'nose_type', 'advertising_banner_url', 'advertising_product_title', )
+    x,y = x[0], y[0]
+    if x in order and y in order:
+        return order.index(x)-order.index(y)
+    elif x in order:
+        return -1
+    elif y in order:
+        return 1
+    return cmp(x, y)
+
 
 class KanojoManager(object):
     """docstring for KanojoManager"""
@@ -88,6 +101,9 @@ class KanojoManager(object):
                 #"advertising_banner_url": None,
                 #"advertising_product_title": None
                 #"voted_like": True,
+
+                # defined by me
+                "scan_count": 1,
             })
         if owner_user:
             kanojo.update({
@@ -197,6 +213,11 @@ class KanojoManager(object):
         rv = {"mascot_enabled": "0", "avatar_background_image_url": None, "in_room": True, "mouth_type": 1, "nose_type": 1, "body_type": 1, "race_type": 10, "spot_type": 1, "birth_day": 12, "sexual": 61, "id": 0, "recognition": 11, "on_advertising": None, "clothes_type": 701, "brow_type": 10, "consumption": 17, "like_rate": 1, "eye_position": 0, "source": "", "location": "Somewhere", "birth_month": 10, "follower_count": 1, "goods_button_visible": True, "accessory_type": 1, "birth_year": 2014, "possession": 11, "hair_type": 3, "clothes_color": 3, "relation_status": 2, "ear_type": 1, "brow_position": 0, "barcode": "************", "love_gauge": 50, "voted_like": False, "eye_color": 5, "glasses_type": 1, "hair_color": 23, "face_type": 3, "nationality": "Italy", "advertising_product_url": None, "geo": "0.0000,0.0000", "emotion_status": 50, "eye_type": 101, "mouth_position": 0, "name": 'Unknown', "fringe_type": 22, "skin_color": 2, "advertising_banner_url": None, "status": "Born in  12 Oct 2014 @ Somewhere. Area: Online. 0 users are following.\nShe has no relationship.", "advertising_product_title": None, "profile_image_url": "http://bk-dump.herokuapp.com/images/common/no_kanojo_picture.png", 'profile_image_full_url': "http://bk-dump.herokuapp.com/images/common/no_kanojo_picture_f.png"}
         return rv
 
+    def increment_scan_couner(self, kanojo, update_db_record=False):
+        kanojo['scan_count'] = kanojo.get('scan_count', 0) + 1
+        if update_db_record:
+            self.save(kanojo)
+
     def delete(self, kanojo):
         if kanojo and kanojo.has_key('_id') and self.db:
             _id = kanojo.pop('_id')
@@ -205,6 +226,11 @@ class KanojoManager(object):
             self.db.kanojos.remove({ '_id': _id })
 
     def relation_status(self, kanojo, user):
+        '''
+            1 - don't know this kanojo_name
+            2 - my kanojo
+            3 - kanojo in my friends 
+        '''
         return 2 if kanojo.get('id') in user.get('kanojos') else 3 if kanojo.get('id') in user.get('friends') else 1
 
     def fill_fields(self, kanojo, self_user=None, owner_user=None):
@@ -273,33 +299,35 @@ class KanojoManager(object):
             return kanojo
         allow_keys = ['mouth_type', 'skin_color', 'body_type', 'race_type', 'spot_type', 'sexual', 'recognition', 'clothes_type', 'brow_type', 'consumption', 'eye_position', 'accessory_type', 'possession', 'hair_type', 'clothes_color', 'ear_type', 'brow_position', 'eye_color', 'glasses_type', 'hair_color', 'face_type', 'eye_type', 'mouth_position', 'fringe_type', 'nose_type']
         if clear == CLEAR_BARCODE:
-            kanojo['barcode'] = '************'
-            allow_keys.extend(['barcode'])
-            return { key: kanojo[key] for key in allow_keys if kanojo.has_key(key) }
+            rv = { key: kanojo[key] for key in allow_keys if kanojo.has_key(key) }
+            rv['barcode'] = '************'
+            return rv
         # select clothes must call before change kanojo db document
         clothes_type = kanojo.get('clothes_type')
         if check_clothes:
             clothes_type, changed = self.select_clothes(kanojo)
             if changed:
                 self.save(kanojo)
-        self.fill_fields(kanojo, self_user=self_user)
-        if kanojo.get('relation_status') is not 2:
-            kanojo['barcode'] = '************'
 
-        curr_date = self.kanojo_date(kanojo)
+        tmp_kanojo = copy.copy(kanojo)
+        self.fill_fields(tmp_kanojo, self_user=self_user)
+        if tmp_kanojo.get('relation_status') is not 2:
+            tmp_kanojo['barcode'] = '************'
+
+        curr_date = self.kanojo_date(tmp_kanojo)
         if curr_date:
-            if kanojo.get('relation_status') == 2:
+            if tmp_kanojo.get('relation_status') == 2:
                 if curr_date.has_key('background_image_url'):
-                    kanojo['avatar_background_image_url'] = curr_date.get('background_image_url')
+                    tmp_kanojo['avatar_background_image_url'] = curr_date.get('background_image_url')
             else:
-                kanojo['in_room'] = False
+                tmp_kanojo['in_room'] = False
 
         allow_keys.extend(['id', 'profile_image_url', 'name', 'mascot_enabled', 'like_rate', 'love_gauge', 'location', 'nationality', 'avatar_background_image_url', 'advertising_product_url', 'birth_day', 'birth_month', 'birth_year', 'emotion_status', 'on_advertising', 'goods_button_visible', 'follower_count', 'advertising_banner_url', 'advertising_product_title', 'voted_like', 'relation_status', 'status', 'in_room'])
-        if kanojo.get('relation_status') > 1:
+        if tmp_kanojo.get('relation_status') > 1:
             allow_keys.extend(['barcode', 'source', 'geo'])
-        rv = { key: kanojo[key] for key in allow_keys if kanojo.has_key(key) }
+        rv = { key: tmp_kanojo[key] for key in allow_keys if tmp_kanojo.has_key(key) }
         rv['clothes_type'] = clothes_type
-        return rv
+        return OrderedDict(sorted(rv.items(), cmp=kanojo_order_dict_cmp))
 
     def kanojos(self, kanojo_ids, self_user=None):
         query = {
@@ -616,7 +644,7 @@ class KanojoManager(object):
 
     def user_breakup_with_kanojo_alert(self, kanojo):
         rv = {
-            'alerts': [ { "body": "You have dumped %s."%kanojo.get('name'), "title": "" } ],
+            'alerts': [ { "body": "You break up with %s."%kanojo.get('name'), "title": "" } ],
             'love_increment': {
                 'decrement_love': 0,
                 'increase_love': 0,

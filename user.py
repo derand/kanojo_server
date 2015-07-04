@@ -10,12 +10,25 @@ import time
 import config
 import math
 import copy
-from activity import ActivityManager, ACTIVITY_SCAN, ACTIVITY_GENERATED, ACTIVITY_ME_ADD_FRIEND, ACTIVITY_APPROACH_KANOJO, ACTIVITY_ME_STOLE_KANOJO, ACTIVITY_MY_KANOJO_STOLEN, ACTIVITY_MY_KANOJO_ADDED_TO_FRIENDS, ACTIVITY_BECOME_NEW_LEVEL, ACTIVITY_MARRIED, ACTIVITY_JOINED
+from activity import ActivityManager, ACTIVITY_SCAN, ACTIVITY_GENERATED, ACTIVITY_ME_ADD_FRIEND, ACTIVITY_APPROACH_KANOJO, ACTIVITY_ME_STOLE_KANOJO, ACTIVITY_MY_KANOJO_STOLEN, ACTIVITY_MY_KANOJO_ADDED_TO_FRIENDS, ACTIVITY_BECOME_NEW_LEVEL, ACTIVITY_MARRIED, ACTIVITY_JOINED, ACTIVITY_BREAKUP
 import random
+from collections import OrderedDict
 
 CLEAR_NONE = 0
 CLEAR_SELF = 1
 CLEAR_OTHER = 2
+
+def user_order_dict_cmp(x, y):
+    order = ('facebook_connect', 'money', 'sex', 'birth_day', 'enemy_count', 'id', 'relation_status', 'twitter_connect', 'kanojo_count', 'stamina', 'birth_month', 'email', 'birth_year', 'friend_count', 'stamina_max', 'description', 'generate_count', 'profile_image_url', 'password', 'tickets', 'name', 'language', 'level', 'scan_count', )
+    x,y = x[0], y[0]
+    if x in order and y in order:
+        return order.index(x)-order.index(y)
+    elif x in order:
+        return -1
+    elif y in order:
+        return 1
+    return cmp(x, y)
+
 
 class UserManager(object):
     """docstring for UserManager"""
@@ -134,21 +147,22 @@ class UserManager(object):
         if clear == CLEAR_NONE:
             return usr
         else:
-            self.fill_fields(usr)
+            tmp_user = copy.copy(usr)
+            self.fill_fields(tmp_user)
             allow_keys = ['id', 'name', 'level', 'money', 'sex', 'stamina', 'profile_image_url', 'scan_count', 'stamina_max', 'relation_status', 'kanojo_count', 'friend_count', 'enemy_count', 'generate_count']
             if clear == CLEAR_SELF:
                 allow_keys.extend(['email', 'tickets', 'language', 'twitter_connect', 'facebook_connect', 'birth_day', 'birth_month', 'birth_year', 'description'])
                 if self_uid is None:
-                    self_uid = usr.get('id')
-            rv = { key: usr[key] for key in allow_keys if usr.has_key(key) }
+                    self_uid = tmp_user.get('id')
+            rv = { key: tmp_user[key] for key in allow_keys if tmp_user.has_key(key) }
             if self_uid:
-                if self_uid == usr.get('id'):
+                if self_uid == tmp_user.get('id'):
                     rv['relation_status'] = 2
                 else:
                     self_user = self.user(uid=self_uid, clear=CLEAR_NONE)
             if self_user:
-                rv['relation_status'] = 2 if self_user.get('id')==usr.get('id') else 3 if usr.get('id') in self_user.get('enemys') else 1
-            return rv
+                rv['relation_status'] = 2 if self_user.get('id')==tmp_user.get('id') else 3 if tmp_user.get('id') in self_user.get('enemys') else 1
+            return OrderedDict(sorted(rv.items(), cmp=user_order_dict_cmp))
 
     def user(self, uuid=None, uid=None, self_uid=None, self_user=None, clear=CLEAR_SELF):
         query = None
@@ -186,7 +200,9 @@ class UserManager(object):
         uid = user.get('id')
         if uid not in kanojo.get('followers'):
             kanojo['followers'].append(uid)
-            if update_db_record:
+            if increment_scan_couner and self.kanojo_manager:
+                self.kanojo_manager.increment_scan_couner(kanojo, update_db_record=update_db_record)
+            elif update_db_record:
                 self.kanojo_manager.save(kanojo)
         if kanojo.get('id') not in user.get('friends'):
             #user['friends'].append(kanojo['id'])
@@ -209,6 +225,10 @@ class UserManager(object):
             return False
         kanojo = self.kanojo_manager.create(barcode_info, kanojo_name, crop_url, user, profile_full_image_url=full_url)
         if kanojo:
+            try:
+                user['generate_count'] = int(user.get('generate_count', 0)) + 1
+            except ValueError, e:
+                pass
             k = user.get('kanojos', [])
             #k.append(kanojo.get('id'))
             k.insert(0, kanojo.get('id'))
@@ -233,7 +253,7 @@ class UserManager(object):
         if user.get('level') < lvl:
             lvl_diff = lvl - user.get('level', 0)
             user['level'] = lvl
-            self.user_change(user, money_change=-lvl_diff*1000, update_db_record=False)
+            self.user_change(user, money_change=-lvl_diff*1000, up_stamina=True, update_db_record=False)
 
             if self.activity_manager:
                 self.activity_manager.create({
@@ -243,6 +263,15 @@ class UserManager(object):
                     })
         if update_db_record:
             self.save(user)
+
+    def scan_kanojo(self, user, kanojo):
+        kid = kanojo.get('id')
+        if kid in user.get('kanojos'):
+            user['kanojos'].insert(0, user['kanojos'].pop(user['kanojos'].index(kid)))
+        if kid in user.get('friends'):
+            user['friends'].insert(0, user['friends'].pop(user['friends'].index(kid)))
+        self.increment_scan_couner(user, update_db_record=True)
+        self.kanojo_manager.increment_scan_couner(kanojo, update_db_record=True)
 
     def user_items(self, user):
         return user.get('has_items', [])
@@ -289,6 +318,14 @@ class UserManager(object):
                 if store_item.get('action') == 'dump_kanojo':
                     rv.update(self.kanojo_manager.user_breakup_with_kanojo_alert(kanojo))
                     self.breakup_with_kanojo(user, kanojo)
+
+                    if self.activity_manager:
+                        self.activity_manager.create({
+                                'activity_type': ACTIVITY_BREAKUP,
+                                'user': user,
+                                'kanojo': kanojo,
+                                #'activity': '{user_name} break up with '
+                            })
                     kanojo = None
 
 
@@ -498,9 +535,14 @@ class UserManager(object):
             user['friends'].remove(kid)
         if uid in kanojo.get('followers', []):
             kanojo['followers'].remove(uid)
+            if kanojo.get('owner_user_id') == uid:
+                kanojo['owner_user_id'] = 0
         if update_db_record:
-            #self.kanojo_manager.save(kanojo)
-            self.kanojo_manager.delete(kanojo)
+            if len(kanojo.get('followers')):
+                self.kanojo_manager.save(kanojo)
+            else:
+                self.kanojo_manager.save(kanojo)
+                #self.kanojo_manager.delete(kanojo)
             self.save(user)
 
 

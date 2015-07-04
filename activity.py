@@ -22,8 +22,10 @@ ACTIVITY_MY_KANOJO_STOLEN = 9               # + "ふみえ was stolen by Nobody.
 ACTIVITY_MY_KANOJO_ADDED_TO_FRIENDS = 10    # + "呪いのBlu-ray added ぽいと to friend list."
 ACTIVITY_BECOME_NEW_LEVEL = 11              # + "Everyone became Lev.\"99\"."
 ACTIVITY_MARRIED = 15                       #   "Devourer get married with うる."
-# user
+# user defined
+# can change "activity_type" in "clear" function to show in client
 ACTIVITY_JOINED = 101
+ACTIVITY_BREAKUP = 102
 
 #ACTIVITY_SCAN, ACTIVITY_GENERATED, ACTIVITY_ME_ADD_FRIEND, ACTIVITY_APPROACH_KANOJO, ACTIVITY_ME_STOLE_KANOJO, ACTIVITY_MY_KANOJO_STOLEN, ACTIVITY_MY_KANOJO_ADDED_TO_FRIENDS, ACTIVITY_BECOME_NEW_LEVEL, ACTIVITY_MARRIED, ACTIVITY_JOINED
 
@@ -150,6 +152,10 @@ class ActivityManager(object):
                 rv['activity'] = '{user_name} get married with {kanojo_name}.'
             elif ACTIVITY_JOINED == at:
                 rv['activity'] = '{user_name} has joined.'
+            elif ACTIVITY_BREAKUP == at:
+                rv['activity'] = '{user_name} break up with {kanojo_name}.'
+                rv['activity_type'] = ACTIVITY_ME_ADD_FRIEND
+                rv['activity_type2'] = ACTIVITY_BREAKUP
         return rv
 
     def user_activity(self, user_id, skip=0, limit=6):

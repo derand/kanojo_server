@@ -155,7 +155,7 @@ function create_activity_box(activity) {
   }
 
   // right
-  if ([5, 8].indexOf(activity.activity_type) > -1) {
+  if ([5, 8, 102].indexOf(activity.activity_type) > -1) {
     r_activities_box = document.createElement('div');
     r_activities_box.className = 'r_activities_box';
     tmp_el = document.createElement('a');
@@ -243,13 +243,13 @@ var since_id = 0;
 function worker() {
     ajax.get('/last_activity.json', {'since_id': since_id}, function(response) {
         data = JSON.parse(response);
-        //console.log(data.code, since_id);
+        console.log(data, since_id);
         if (data.code == 200) {
             var arr = Array(),
                 activities_box, i,
                 container = document.getElementById("container");
             for (i=(data.activities.length-1); i>=0; i--) {
-                since_id = Math.max(data.activities[i].id, since_id);
+                //since_id = Math.max(data.activities[i].id, since_id);
                 activities_box = create_activity_box(data.activities[i]);
                 //arr.splice(0, 0, activities_box);
                 arr.push(activities_box);
@@ -260,6 +260,9 @@ function worker() {
                 } else {
                     container.appendChild(arr[i]);
                 }
+            }
+            if (data.last_id) {
+              since_id = data.last_id;
             }
         }
         update_time(container.getElementsByClassName('activities_box'));

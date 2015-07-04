@@ -74,7 +74,7 @@ def timectime(s):
 
 
 def order_dict_cmp(x, y):
-    order = ['code']
+    order = ('code', )
     x,y = x[0], y[0]
     if x in order and y in order:
         return order.index(x)-order.index(y)
@@ -525,6 +525,7 @@ def last_activity():
     activities = activity_manager.fill_activities(activities, users, kanojos, user_manager.default_user, kanojo_manager.default_kanojo, fill_type=FILL_TYPE_HTML)
 
     rspns = { "code": 200 }
+    rspns['last_id'] = activities[0].get('id') if len(activities) else since_id
     rspns['activities'] = activities
     return json_response(rspns)
 
@@ -581,11 +582,11 @@ def kanojo_html(kid):
         'red_level': lambda x: x < 30,
         'len_zero': lambda x: len(x)==0,
         'is_dict': lambda x: isinstance(x, dict),
+        'like_rate0': 5-kanojo.get('like_rate', 0),
     }
     val.update(kanojo)
-    #print json.dumps(val)
+    #print json.dumps(kanojo)
     return render_template('kanojo.html', **val)
-    #return json_response(kanojo)
 
 
 
@@ -1026,18 +1027,6 @@ def barcode_query():
     session['barcode'] = barcode
     kanojo = kanojo_manager.kanojo_by_barcode(barcode)
 
-    # TODO: for tests
-    if barcode == test_barcode.get('barcode'):
-        self_user = user_manager.user(uid=session['id'], clear=CLEAR_NONE)
-        rspns = { 'code': 200 }
-        #barcode = '************'
-        rspns['product'] = {"category": "others", "comment": "", "name": "product_name", "product_image_url": None, "barcode": barcode, "country": "Japan", "location": "Somewhere", "scan_count": 1, "category_id": 21, "geo": None, "company_name": "company_name"}
-        rspns['scanned'] = None
-        rspns['scan_history'] = {"kanojo_count": 0, "friend_count": 0, "barcode": barcode, "total_count": 0}
-        rspns['messages'] = {"notify_amendment_information": "This information is already used by other users.\nIf your amendment would be incorrect, you will be restricted user.", "inform_girlfriend": "She is your KANOJO, and you have scanned this barcode 0times.", "inform_friend": "She belongs to miwakoizm, and you have scanned this barcode 0times.", "do_generate_kanojo": "Would you like to generate this KANOJO?\nIt requires 20 stamina.", "do_add_friend": "She belongs to Nobody.\nDo you want to add her on your friend list ? It requires 0 stamina."}
-        rspns['barcode'] = test_barcode
-        return json_response(rspns)
-
     if kanojo is None or len(kanojo) == 0:
         # not found in db, search in barcode_tmp database
         bc = db.barcode_tmp.find_one( { 'barcode': barcode } )
@@ -1078,9 +1067,11 @@ def barcode_query():
         if owner_user is None:
             owner_user = user_manager.default_user
         self_user = user_manager.user(uid=session['id'], clear=CLEAR_NONE)
-        # increment user scan counter for self kanojo 
-        #if owner_user.get('id') == self_user.get('id'):
-        #    user_manager.increment_scan_couner(self_user, update_db_record=True)
+
+        kid = kanojo.get('id')
+        if kid in self_user.get('kanojos') or kid in self_user.get('friends'):
+            user_manager.scan_kanojo(self_user, kanojo)
+
         rspns = { 'code': 200 }
         #barcode = '************'
         rspns['product'] = {"category": "others", "comment": "", "name": "product_name", "product_image_url": None, "barcode": barcode, "country": "Japan", "location": "Somewhere", "scan_count": 1, "category_id": 21, "geo": None, "company_name": "company_name"}
@@ -1121,6 +1112,7 @@ def barcode_scan():
         self_user = user_manager.user(uid=uid, clear=CLEAR_NONE)
         for k in kanojos:
             user_manager.add_kanojo_as_friend(self_user, k)
+            user_manager.scan_kanojo(self_user, k)
         rspns = { 'code': 200 }
         rspns['user'] = user_manager.clear(self_user, CLEAR_SELF, self_user=self_user)
     return json_response(rspns)
@@ -1138,15 +1130,6 @@ def barcode_decrease_generating():
     #rspns['product'] = { 'category': 'Industrial tool', 'company_name': 'wakaba', 'name': 'test', 'price': '$9.95', 'product': 'iichan', 'product_image_url': 'http://www.deviantsart.com/g3629d.png' }
     rspns['product'] = { 'category': 'Industrial tool', 'company_name': 'wakaba', 'name': None, 'price': '$9.95', 'product': 'iichan', 'product_image_url': None }
     return json_response(rspns)
-
-
-
-test_barcode = { "mouth_type": 3,  "nose_type": 6,  "body_type": 1, "spot_type": 1,  "sexual": 44,  "recognition": 14,  "clothes_type": 3,  "brow_type": 7,  "consumption": 28, "accessory_type": 1,  "possession": 14,   "hair_type": 24,  "clothes_color": 1, "ear_type": 2, "barcode": "4909411043339", "eye_color": 7, "glasses_type": 1,  "hair_color": 17, "face_type": 3, "eye_type": 106, "fringe_type": 16,  "skin_color": 1,
-    "brow_position":  0,
-    "eye_position":   0,
-    "mouth_position": 0,
-    }
-
 
 @app.route('/2/barcode/scan_and_generate.json', methods=['POST'])
 @set_parsers(BKMultipartParser)
@@ -1310,7 +1293,7 @@ def communication_store_items():
 @app.route('/2/communication/date_list.json', methods=['GET'])
 def communication_date_list():
     '''
-        type_id - 1 (store, can buy), 2 - belongings list
+        type_id - 1 (store, can buy this items), 2 - belongings list
         kanojo_id - kanojo_id
     '''
     if not session.has_key('id'):

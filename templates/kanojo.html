@@ -13,7 +13,7 @@
 			<table cellpadding="0" cellspacing="0" border="0" width="100%"><tbody>
 				<tr valign="top">
 					<td width="160">
-						<div id="portrate" class="middle">
+						<div id="portrate" class="middle"{% if avatar_background_image_url%} style="background: url({{avatar_background_image_url}}) no-repeat; background-size: 100%;"{% endif %}>
 							<img src="{{ profile_image_full_url }}" width="160" height="160">
 						</div>
 					</td>
@@ -23,14 +23,14 @@
 								<td width="35%" class="user_info" style="color:#AAA;">Birthday</td>
 								<td width="65%" class="user_info">{{ birthday|date_format }}</td>
 							</tr>
-							<tr valign="top" class="stripe">
+							<!--tr valign="top" class="stripe">
 								<td width="35%" class="user_info" style="color:#AAA;">Place of birth</td>
 								<td width="65%" class="user_info">Somewhere</td>
 							</tr>
 							<tr valign="top">
 								<td width="35%" class="user_info" style="color:#AAA;">Nationality</td>
 								<td width="65%" class="user_info">None</td>
-							</tr>
+							</tr-->
 							<tr valign="top" class="stripe">
 								<td width="35%" class="user_info" style="color:#AAA;">Steady</td>
 								<td width="65%" class="user_info">
@@ -42,6 +42,14 @@
 							<tr valign="top">
 								<td width="35%" class="user_info" style="color:#AAA;">Love level</td>
 								<td width="65%" class="user_info"><div class="bb_indicator"><img src="{% if red_level(love_gauge) %}/images/common/ind_red.png{% else %}/images/common/ind_blue.png{% endif %}" class="bb_indicator_bar" height="12" width="{{ love_gauge }}%" style="border-right:1px solid #999"></div></td>
+							</tr>
+							<tr valign="top">
+								<td width="35%" class="user_info" style="color:#AAA;">Like rate</td>
+								<td width="65%" class="user_info">{% for i in range(like_rate) %}<img src="/images/common/star1.png">{% endfor %}{% for i in range(like_rate0) %}<img src="/images/common/star0.png">{% endfor %}</td>
+							</tr>
+							<tr valign="top">
+								<td width="35%" class="user_info" style="color:#AAA;">Scan count</td>
+								<td width="65%" class="user_info">{{ scan_count | default(1, true) }}</td>
 							</tr>
 						</tbody></table>
 
