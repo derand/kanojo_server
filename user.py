@@ -273,6 +273,26 @@ class UserManager(object):
         self.increment_scan_couner(user, update_db_record=True)
         self.kanojo_manager.increment_scan_couner(kanojo, update_db_record=True)
 
+    def set_like(self, user, kanojo, like_value, update_db_record=False):
+        self.kanojo_manager.set_like(kanojo, like_value, user, update_db_record=update_db_record)
+        changed = False
+        like_kanojos = user.get('likes', [])
+        kid = kanojo.get('id')
+        if like_value:
+            if kid not in like_kanojos:
+                like_kanojos.insert(0, kid)
+                user['likes'] = like_kanojos
+                changed = True
+        else:
+            if kid in like_kanojos:
+                like_kanojos.remove(kid)
+                user['likes'] = like_kanojos
+                changed = True
+        if changed:
+            if update_db_record:
+                self.save(user)
+        return changed
+
     def user_items(self, user):
         return user.get('has_items', [])
 
@@ -426,7 +446,7 @@ class UserManager(object):
             except Exception, e:
                 pass
             kanojo['owner_user_id'] = user.get('id')
-            user['kanojos'].append(kanojo.get('id'))
+            user['kanojos'].insert(0, kanojo.get('id'))
 
             if self.activity_manager:
                 self.activity_manager.create({

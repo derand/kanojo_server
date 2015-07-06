@@ -101,6 +101,7 @@ class KanojoManager(object):
                 #"advertising_banner_url": None,
                 #"advertising_product_title": None
                 #"voted_like": True,
+                "likes": [],
 
                 # defined by me
                 "scan_count": 1,
@@ -215,8 +216,35 @@ class KanojoManager(object):
 
     def increment_scan_couner(self, kanojo, update_db_record=False):
         kanojo['scan_count'] = kanojo.get('scan_count', 0) + 1
+        self.recalc_like_rate(kanojo)
         if update_db_record:
             self.save(kanojo)
+
+    def recalc_like_rate(self, kanojo):
+        kanojo['like_rate'] = len(kanojo.get('likes', [])) * 0.6 + kanojo.get('scan_count', 0) / 30.0
+
+    def set_like(self, kanojo, like_value, user_or_id, update_db_record=False):
+        '''
+            call this method only from user_manager (need also update user record)
+        '''
+        uid = user_or_id.get('id') if isinstance(user_or_id, dict) else user_or_id
+        changed = False
+        likes = kanojo.get('likes', [])
+        if like_value:
+            if uid not in likes:
+                likes.insert(0, uid)
+                kanojo['likes'] = likes
+                changed = True
+        else:
+            if uid in likes:
+                likes.remove(uid)
+                kanojo['likes'] = likes
+                changed = True
+        if changed:
+            self.recalc_like_rate(kanojo)
+            if update_db_record:
+                self.save(kanojo)
+        return changed
 
     def delete(self, kanojo):
         if kanojo and kanojo.has_key('_id') and self.db:
@@ -234,6 +262,14 @@ class KanojoManager(object):
         return 2 if kanojo.get('id') in user.get('kanojos') else 3 if kanojo.get('id') in user.get('friends') else 1
 
     def fill_fields(self, kanojo, self_user=None, owner_user=None):
+        kanojo['status'] = 'Born in  %s.\n%d users are following.\n'%(time.strftime('%d %b %Y', time.gmtime(kanojo.get('birthday', 0))), len(kanojo.get('followers', [])))
+        if owner_user:
+            kanojo['status'] += 'She has relationship with %s.'%owner_user.get('name')
+        elif self_user.get('id') == kanojo.get('owner_user_id'):
+           kanojo['status'] += 'She has relationship with %s.'%self_user.get('name')
+        else:
+            kanojo['status'] += 'She has not relationship.'
+
         dt = time.gmtime(kanojo.get('birthday', 0))
         kanojo['birth_day'] = dt.tm_mday
         kanojo['birth_month'] = dt.tm_mon
@@ -245,17 +281,17 @@ class KanojoManager(object):
         kanojo['geo'] = '0.0000,0.0000'
         kanojo['advertising_banner_url'] = None  # TODO: shows when open kanojo ("reactionword" api call format)
         kanojo['advertising_product_title'] = None
-        kanojo['status'] = 'Born in  %s @ %s. Area: %s. %d users are following.\nShe has relationship with '%(time.strftime('%d %b %Y', time.gmtime(kanojo.get('birthday'))), kanojo.get('location'), kanojo.get('nationality'), kanojo.get('follower_count'))
+        #kanojo['status'] = 'Born in  %s @ %s. Area: %s. %d users are following.\nShe has relationship with '%(time.strftime('%d %b %Y', time.gmtime(kanojo.get('birthday'))), kanojo.get('location'), kanojo.get('nationality'), kanojo.get('follower_count'))
         if self_user is not None:
             kanojo['goods_button_visible'] = self_user.get('id')==kanojo.get('owner_user_id')
             kanojo['voted_like'] = kanojo.get('id') in self_user.get('likes', [])
             kanojo['relation_status'] = self.relation_status(kanojo, self_user)
-            kanojo['status'] += owner_user.get('name') if owner_user else self_user.get('name') if kanojo.get('relation_status') == 2 else 'Nobody'
+            #kanojo['status'] += owner_user.get('name') if owner_user else self_user.get('name') if kanojo.get('relation_status') == 2 else 'Nobody'
         else:
             kanojo['goods_button_visible'] = False
             kanojo['voted_like'] = False
             kanojo['relation_status'] = 1
-            kanojo['status'] += 'Nobody'
+            #kanojo['status'] += 'Nobody'
         kanojo['in_room'] = True
         if not kanojo.get('profile_image_url'):
             kanojo['profile_image_url'] = 'http://bk-dump.herokuapp.com/images/common/no_kanojo_picture.png'
@@ -265,6 +301,10 @@ class KanojoManager(object):
             kanojo['profile_image_full_url'] = 'http://bk-dump.herokuapp.com/images/common/no_kanojo_picture_f.png'
         if not kanojo.get('profile_image_full_url').startswith('http') and self.server:
             kanojo['profile_image_full_url'] = self.server + kanojo.get('profile_image_full_url')
+
+        kanojo['like_rate'] = int(round(kanojo.get('like_rate', 0)))
+        if kanojo.get('like_rate') > 5:
+            kanojo['like_rate'] = 5
         return kanojo
 
     def kanojo_date(self, kanojo):
@@ -291,7 +331,7 @@ class KanojoManager(object):
         return None
     
 
-    def clear(self, kanojo, self_user=None, clear=CLEAR_SELF, check_clothes=False):
+    def clear(self, kanojo, self_user=None, clear=CLEAR_SELF, check_clothes=False, owner_user=None):
         if kanojo is None:
             # TODO: maybe should return somthing else?
             return kanojo
@@ -310,7 +350,7 @@ class KanojoManager(object):
                 self.save(kanojo)
 
         tmp_kanojo = copy.copy(kanojo)
-        self.fill_fields(tmp_kanojo, self_user=self_user)
+        self.fill_fields(tmp_kanojo, self_user=self_user, owner_user=owner_user)
         if tmp_kanojo.get('relation_status') is not 2:
             tmp_kanojo['barcode'] = '************'
 
@@ -329,7 +369,14 @@ class KanojoManager(object):
         rv['clothes_type'] = clothes_type
         return OrderedDict(sorted(rv.items(), cmp=kanojo_order_dict_cmp))
 
-    def kanojos(self, kanojo_ids, self_user=None):
+    def kanojo(self, kanojo_id, self_user=None, clear=CLEAR_SELF, check_clothes=False):
+        query = { 'id': kanojo_id }
+        k = self.db.kanojos.find_one(query)
+        if k:
+            return self.clear(k, self_user=self_user, clear=clear, check_clothes=check_clothes)
+        return k
+
+    def kanojos(self, kanojo_ids, self_user=None, clear=CLEAR_SELF):
         query = {
             'id': {
                 '$in': kanojo_ids
@@ -337,18 +384,24 @@ class KanojoManager(object):
         }
         arr = []
         for k in self.db.kanojos.find(query):
-            arr.append(self.clear(k, self_user=self_user))
+            arr.append(self.clear(k, self_user=self_user, clear=clear))
 
         # sort result
         rv = sorted(arr, key=lambda k: kanojo_ids.index(k['id']))
         return rv
 
-    def kanojo(self, kanojo_id, self_user=None, clear=CLEAR_SELF, check_clothes=False):
-        query = { 'id': kanojo_id }
-        k = self.db.kanojos.find_one(query)
-        if k:
-            return self.clear(k, self_user=self_user, clear=clear, check_clothes=check_clothes)
-        return k
+    def fill_owners_info(self, kanojos, owner_users, self_user=None):
+        rv = []
+        for k in kanojos:
+            owner_user = next((u for u in owner_users if u.get('id') == k.get('owner_user_id')), None)
+            rv.append(self.clear(k, self_user=self_user, owner_user=owner_user, clear=CLEAR_SELF))
+        return rv
+
+    def kanojos_owner_users(self, kanojos):
+        s = set(map(lambda k: k.get('owner_user_id'), kanojos))
+        s.discard(0)
+        s.discard(None)
+        return list(s)
 
     def kanojo_by_barcode(self, barcode):
         query = None
@@ -518,9 +571,9 @@ class KanojoManager(object):
                 rv['alerts'] = [ { "body": "You could not increase her love...", "title": "" } ]
         elif relation_status == 3:
             tm = int(time.time())
-            enjoying_to = kanojo.get('enjoying_to', 0)
-            if enjoying_to > tm:
-                m = (enjoying_to - tm) / 60
+            enjoying_time = kanojo.get('enjoying_time', 0)
+            if enjoying_time > tm:
+                m = (enjoying_time - tm) / 60
                 rv['alerts'] = [ { "body": "She is enjoying with someone, coming back about %d mins later."%m, "title": "" } ]
                 rv['love_increment']['alertShow'] = 1
                 rv['info']['busy'] = True
@@ -529,7 +582,7 @@ class KanojoManager(object):
                 rv['love_increment']['decrement_love'] = love_change
                 if love_change:
                     rv['alerts'] = [ { "body": "Her love level towards her boyfriend reduced %d."%love_change, "title": "" } ]
-                    kanojo['enjoying_to'] = tm + 60*60
+                    kanojo['enjoying_time'] = tm + 60*60
         if kanojo['love_gauge'] > 100:
             kanojo['love_gauge'] = 100
             rv['alerts'] = [ { "body": "Her love level is already full.", "title": "" } ]

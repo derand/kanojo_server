@@ -536,6 +536,8 @@ def user_html(uid):
     except ValueError, e:
         return abort(400)
     user = user_manager.user(uid=uid, clear=CLEAR_NONE)
+    if not user:
+        abort(404)
     user = user_manager.fill_fields(user)
     user.pop('_id', None)
 
@@ -677,7 +679,11 @@ def user_friendkanojos():
         else:
             kanojos_ids = kanojos_ids[index:index+limit]
         self_user = user_manager.user(uid=session['id'], clear=CLEAR_NONE)
-        friend_kanojos = kanojo_manager.kanojos(kanojo_ids=kanojos_ids, self_user=self_user)
+        friend_kanojos = kanojo_manager.kanojos(kanojo_ids=kanojos_ids, self_user=self_user, clear=CLEAR_NONE)
+
+        user_ids = kanojo_manager.kanojos_owner_users(friend_kanojos)
+        users = user_manager.users(user_ids, self_user=self_user)
+        friend_kanojos = kanojo_manager.fill_owners_info(friend_kanojos, owner_users=users, self_user=self_user)
     rspns['friend_kanojos'] = friend_kanojos
     rspns['user'] = user_manager.clear(user, CLEAR_OTHER, self_uid=session['id'])
     return json_response(rspns)
@@ -692,12 +698,21 @@ def kanojo_likerankings():
     index = int(prms.get('index'))
     limit = int(prms.get('limit'))
     query = {}
-    kanojos = db.kanojos.find(query).sort('id', -1).skip(index).limit(limit)
+    order = [
+        ('like_rate', -1),
+        ('id', -1), 
+    ]
+    kanojos = db.kanojos.find(query).sort(order).skip(index).limit(limit)
     self_user = user_manager.user(uid=session['id'], clear=CLEAR_NONE)
     rspns = { "code": 200 }
     like_ranking_kanojos = []
     for k in kanojos:
-        like_ranking_kanojos.append(kanojo_manager.clear(k, self_user))
+        like_ranking_kanojos.append(k)
+
+    user_ids = kanojo_manager.kanojos_owner_users(like_ranking_kanojos)
+    users = user_manager.users(user_ids, self_user=self_user)
+    like_ranking_kanojos = kanojo_manager.fill_owners_info(like_ranking_kanojos, owner_users=users, self_user=self_user)
+
     rspns['like_ranking_kanojos'] = like_ranking_kanojos
     return json_response(rspns)
 
@@ -718,8 +733,8 @@ def kanojo_show():
     kanojo = kanojo_manager.kanojo(kanojo_id, self_user=self_user, clear=CLEAR_NONE)
     if kanojo:
         owner_user = user_manager.user(uid=kanojo.get('owner_user_id'), clear=CLEAR_NONE)
+        rspns['kanojo'] = kanojo_manager.clear(kanojo, self_user, owner_user=owner_user, clear=CLEAR_OTHER, check_clothes=True)
         rspns['owner_user'] = user_manager.clear(owner_user, CLEAR_OTHER, self_user=self_user)
-        rspns['kanojo'] = kanojo_manager.clear(kanojo, self_user, clear=CLEAR_OTHER, check_clothes=True)
 
         kanojo_date_alert = kanojo_manager.kanojo_date_alert(kanojo)
         if kanojo_date_alert:
@@ -839,7 +854,9 @@ def kanojo_vote_like():
     rspns = { "code": 200 }
     self_user = user_manager.user(uid=session['id'], clear=CLEAR_NONE)
     kanojo = kanojo_manager.kanojo(kanojo_id, self_user=self_user, clear=CLEAR_NONE)
-    # TODO: save new vote
+
+    changed = user_manager.set_like(self_user, kanojo, like, update_db_record=True)
+
     rspns['kanojo'] = kanojo_manager.clear(kanojo, self_user, clear=CLEAR_OTHER)
     return json_response(rspns)
 
@@ -900,8 +917,14 @@ def activity_usertimeline():
     kids = activity_manager.kanojo_ids(activities)
 
     self_user = user_manager.user(uid=self_uid, clear=CLEAR_NONE)
+    kanojos = kanojo_manager.kanojos(kids, self_user, clear=CLEAR_NONE)
+
+    user_ids = kanojo_manager.kanojos_owner_users(kanojos)
+    if user_ids:
+        uids.extend(user_ids)
+        uids = list(set(uids))
     users = user_manager.users(uids, self_user=self_user)
-    kanojos = kanojo_manager.kanojos(kids, self_user)
+    kanojos = kanojo_manager.fill_owners_info(kanojos, owner_users=users, self_user=self_user)
 
     activities = activity_manager.fill_activities(activities, users, kanojos, user_manager.default_user, kanojo_manager.default_kanojo)
 
