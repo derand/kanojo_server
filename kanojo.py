@@ -265,10 +265,10 @@ class KanojoManager(object):
         kanojo['status'] = 'Born in  %s.\n%d users are following.\n'%(time.strftime('%d %b %Y', time.gmtime(kanojo.get('birthday', 0))), len(kanojo.get('followers', [])))
         if owner_user:
             kanojo['status'] += 'She has relationship with %s.'%owner_user.get('name')
-        elif self_user.get('id') == kanojo.get('owner_user_id'):
+        elif self_user and self_user.get('id') == kanojo.get('owner_user_id'):
            kanojo['status'] += 'She has relationship with %s.'%self_user.get('name')
         else:
-            kanojo['status'] += 'She has not relationship.'
+            kanojo['status'] += 'She has not in relationship.'
 
         dt = time.gmtime(kanojo.get('birthday', 0))
         kanojo['birth_day'] = dt.tm_mday

@@ -650,7 +650,8 @@ def user_currentkanojos():
         else:
             kanojos_ids = kanojos_ids[index:index+limit]
         self_user = user_manager.user(uid=session['id'], clear=CLEAR_NONE)
-        current_kanojos = kanojo_manager.kanojos(kanojo_ids=kanojos_ids, self_user=self_user)
+        current_kanojos = kanojo_manager.kanojos(kanojo_ids=kanojos_ids, self_user=self_user, clear=CLEAR_NONE)
+        current_kanojos = kanojo_manager.fill_owners_info(current_kanojos, owner_users=(self_user, user), self_user=self_user)
     rspns['current_kanojos'] = current_kanojos
     rspns['user'] = user_manager.clear(user, CLEAR_OTHER, self_uid=session['id'])
     return json_response(rspns)
@@ -1630,7 +1631,10 @@ def update_stamina_job():
     #print int(time.time()), idxs
     for user in db.users.find(query):
         user_manager.user_change(user, up_stamina=True, update_db_record=True)
-        print 'Recover stamina \"%s\"(%d)'%(user.get('name'), user.get('id'))
+        try:
+            print 'Recover stamina \"%s\"(%d)'%(user.get('name').encode('utf-8'), user.get('id'))
+        except UnicodeEncodeError, e:
+            print 'Recover stamina uid: %d'%user.get('id')
 
 def test_job():
     print int(time.time())
@@ -1651,6 +1655,6 @@ sched.start()
 if __name__ == "__main__":
     app.debug = True
     #app.run(host='0.0.0.0', port=443, ssl_context=context)
-    #app.run(host='192.168.1.19', port=443, ssl_context=context)
-    app.run(host='0.0.0.0', port=5000)
+    app.run(host='192.168.1.19', port=443, ssl_context=context)
+    #app.run(host='0.0.0.0', port=5000)
     #app.run(host='localhost')
