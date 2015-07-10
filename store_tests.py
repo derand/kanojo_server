@@ -14,7 +14,7 @@ class StoreTest(unittest.TestCase):
     def __init__(self, *args, **kwargs):
         super(StoreTest, self).__init__(*args, **kwargs)
         self.sm = StoreManager()
-        self.user = {"facebook_connect": False, "money": 0, "sex": "male", "create_time": 1413019326, "likes": [], "id": 1, "description": None, "uuid": ["test_uuid"], "stamina": 100, "kanojos": [1, 368], "email": None, "twitter_connect": False, "generate_count": 0, "profile_image_url": "http://www.deviantsart.com/2oo69ib.jpg", "birthday": 1413025200, "enemys": [], "password": None, "friends": [231, 31, 149, 333, 335, 336, 337, 339, 30, 220, 361], "tickets": 20, "name": "everyone", "language": "en", "level": 1, "scan_count": 0, "has_items": [{"has_item_id": 51, "store_item_id": 110}]}
+        self.user = {"facebook_connect": False, "money": 0, "sex": "male", "create_time": 1413019326, "likes": [], "id": 1, "description": None, "uuid": ["test_uuid"], "stamina": 100, "kanojos": [1, 368], "email": None, "twitter_connect": False, "generate_count": 0, "profile_image_url": "http://www.deviantsart.com/2oo69ib.jpg", "birthday": 1413025200, "enemies": [], "password": None, "friends": [231, 31, 149, 333, 335, 336, 337, 339, 30, 220, 361], "tickets": 20, "name": "everyone", "language": "en", "level": 1, "scan_count": 0, "has_items": [{"has_item_id": 51, "store_item_id": 110}]}
 
     def prepare_categories(self, ctgrs, user_level=None):
         item_categories = []

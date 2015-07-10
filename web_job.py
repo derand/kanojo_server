@@ -541,18 +541,35 @@ def user_html(uid):
     user = user_manager.fill_fields(user)
     user.pop('_id', None)
 
-    kids = user.get('kanojos')
+    kids = copy.copy(user.get('kanojos'))
     if len(kids) > 18:
         kids = kids[:18]
 
+    uids = copy.copy(user.get('enemies'))
+    if len(uids) > 18:
+        uids = uids[:18]
+
+    activities = activity_manager.user_activities_4html(uid, limit=10)
+    uids.extend(activity_manager.user_ids(activities))
+    kids.extend(activity_manager.kanojo_ids(activities))
+    uids = list(set(uids))
+    kids = list(set(kids))
     kanojos = kanojo_manager.kanojos(kids)
+    users = user_manager.users(uids)
+
     for i in range(min(18, len(user.get('kanojos')))):
         user['kanojos'][i] = next((k for k in kanojos if k.get('id') == user['kanojos'][i]), kanojo_manager.default_kanojo)
+
+    for i in range(min(18, len(user.get('enemies')))):
+        user['enemies'][i] = next((u for u in users if u.get('id') == user['enemies'][i]), user_manager.default_user)
+
+    activities = activity_manager.fill_activities(activities, users, kanojos, user_manager.default_user, kanojo_manager.default_kanojo, fill_type=FILL_TYPE_HTML)
 
     val = {
         'stamina_percentage': user.get('stamina') * 10 / (user.get('level') + 9),
         'is_dict': lambda x: isinstance(x, dict),
         'len_zero': lambda x: len(x)==0,
+        'activities_html': activity_manager.create_html_block(activities),
     }
     val.update(user)
     return render_template('user.html', **val)
@@ -569,22 +586,29 @@ def kanojo_html(kid):
     kanojo = kanojo_manager.fill_fields(kanojo)
     kanojo.pop('_id', None)
 
-    ids = kanojo.get('followers')
-    if len(ids) > 18:
-        ids = ids[:18]
-    if kanojo.get('owner_user_id') and kanojo.get('owner_user_id') not in ids:
-        ids.append(kanojo.get('owner_user_id'))
+    uids = copy.copy(kanojo.get('followers'))
+    if len(uids) > 18:
+        uids = uids[:18]
+    if kanojo.get('owner_user_id') and kanojo.get('owner_user_id') not in uids:
+        uids.append(kanojo.get('owner_user_id'))
 
-    users = user_manager.users(ids)
+    activities = activity_manager.kanojo_activities_4html(kanojo.get('id'), limit=10)
+    uids.extend(activity_manager.user_ids(activities))
+    #kids.extend(activity_manager.kanojo_ids(activities))
+
+    users = user_manager.users(uids)
     kanojo['owner_user'] = next((u for u in users if u.get('id') == kanojo.get('owner_user_id')), user_manager.default_user)
     for i in range(min(18, len(kanojo.get('followers')))):
         kanojo['followers'][i] = next((u for u in users if u.get('id') == kanojo['followers'][i]), user_manager.default_user)
+
+    activities = activity_manager.fill_activities(activities, users, [kanojo, ], user_manager.default_user, kanojo_manager.default_kanojo, fill_type=FILL_TYPE_HTML)
 
     val = {
         'red_level': lambda x: x < 30,
         'len_zero': lambda x: len(x)==0,
         'is_dict': lambda x: isinstance(x, dict),
         'like_rate0': 5-kanojo.get('like_rate', 0),
+        'activities_html': activity_manager.create_html_block(activities),
     }
     val.update(kanojo)
     #print json.dumps(kanojo)
@@ -1101,7 +1125,13 @@ def barcode_query():
         rspns['product'] = {"category": "others", "comment": "", "name": "product_name", "product_image_url": None, "barcode": barcode, "country": "Japan", "location": "Somewhere", "scan_count": 1, "category_id": 21, "geo": None, "company_name": "company_name"}
         rspns['scanned'] = None
         rspns['scan_history'] = {"kanojo_count": 0, "friend_count": 0, "barcode": barcode, "total_count": 0}
-        rspns['messages'] = {"notify_amendment_information": "This information is already used by other users.\nIf your amendment would be incorrect, you will be restricted user.", "inform_girlfriend": "She is your KANOJO, and you have scanned this barcode 0times.", "inform_friend": "She belongs to miwakoizm, and you have scanned this barcode 0times.", "do_generate_kanojo": "Would you like to generate this KANOJO?\nIt requires 20 stamina.", "do_add_friend": "She belongs to Nobody.\nDo you want to add her on your friend list ? It requires 0 stamina."}
+        rspns['messages'] = {
+            "notify_amendment_information": "This information is already used by other users.\nIf your amendment would be incorrect, you will be restricted user.",
+            "inform_girlfriend": "She is your KANOJO.",
+            "inform_friend": "She belongs to %s, and your friend."%owner_user.get('name'),
+            "do_generate_kanojo": "Would you like to generate this KANOJO?\nIt requires 20 stamina.",
+            "do_add_friend": "She belongs to %s.\nDo you want to add her on your friend list? It requires 0 stamina."%owner_user.get('name')
+        }
         rspns['barcode'] = kanojo_manager.clear(kanojo, self_user, clear=CLEAR_BARCODE)
         rspns['kanojo'] = kanojo_manager.clear(kanojo, self_user, clear=CLEAR_SELF)
         rspns['owner_user'] = user_manager.clear(owner_user, CLEAR_OTHER, self_user=self_user)
@@ -1632,7 +1662,7 @@ def update_stamina_job():
     for user in db.users.find(query):
         user_manager.user_change(user, up_stamina=True, update_db_record=True)
         try:
-            print 'Recover stamina \"%s\"(%d)'%(user.get('name').encode('utf-8'), user.get('id'))
+            print 'Recover stamina \"%s\"(id:%d)'%(user.get('name').encode('utf-8'), user.get('id'))
         except UnicodeEncodeError, e:
             print 'Recover stamina uid: %d'%user.get('id')
 
@@ -1655,6 +1685,6 @@ sched.start()
 if __name__ == "__main__":
     app.debug = True
     #app.run(host='0.0.0.0', port=443, ssl_context=context)
-    app.run(host='192.168.1.19', port=443, ssl_context=context)
-    #app.run(host='0.0.0.0', port=5000)
+    #app.run(host='192.168.1.19', port=443, ssl_context=context)
+    app.run(host='0.0.0.0', port=5000)
     #app.run(host='localhost')

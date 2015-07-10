@@ -5,6 +5,15 @@
 		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 		<title>Barcode KANOJO: {{ name }} Profile</title>
 		<link rel="stylesheet" href="{{ url_for('static', filename='css/common.css') }}">
+		<script src="{{ url_for('static', filename='js/common.js') }}"></script>
+		<script type="text/javascript">//<![CDATA[
+function ready() {
+	update_time(document.getElementById("maincontent").getElementsByClassName('activities_box'));
+	window.setTimeout(ready, 60 * 1000);
+};
+
+document.addEventListener("DOMContentLoaded", ready);
+//]]>	</script>
 	</head>
 	<body>
 		<div id="maincontent">
@@ -53,11 +62,14 @@
 {% if len_zero(followers) %}<div class="msg_small_alert">KANOJO doesn't have Follower.</div>{% else %}
 {% for u in followers %}{% if is_dict(u) %}			<span>
 				<a href="/user/{{ u.id }}.html">
-					<img class="icon" src="{{ u.profile_image_url }}" alt="{{ u.name }}" border="0" width="50">
+					<img class="icon" src="{{ u.profile_image_url }}" alt="{{ u.name }}" style="width: 50px; height: 50px;">
 				</a>
 			</span>
 {% endif %}{% endfor %}
 {% endif %}
+
+			<h1 class="corner_name">Latest activities</h1>
+{{ activities_html | safe }}
 		</div>
 	</body>
 </html>

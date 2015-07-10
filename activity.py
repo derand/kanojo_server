@@ -29,6 +29,7 @@ ACTIVITY_MARRIED = 15                       #   "Devourer get married with う�
 # can change "activity_type" in "clear" function to show in client
 ACTIVITY_JOINED = 101                       # +
 ACTIVITY_BREAKUP = 102                      # +
+ACTIVITY_ADD_AS_ENEMY = 103                 # +
 
 ALL_ACTIVITIES = (ACTIVITY_SCAN, ACTIVITY_GENERATED, ACTIVITY_ME_ADD_FRIEND, ACTIVITY_APPROACH_KANOJO, ACTIVITY_ME_STOLE_KANOJO, ACTIVITY_MY_KANOJO_STOLEN, ACTIVITY_MY_KANOJO_ADDED_TO_FRIENDS, ACTIVITY_BECOME_NEW_LEVEL, ACTIVITY_MARRIED, ACTIVITY_JOINED, ACTIVITY_BREAKUP)
 
@@ -117,7 +118,7 @@ class ActivityManager(object):
         if activity == CLEAR_NONE:
             return activity
 
-        allow_keys = ('kanojo', 'scanned', 'user', 'other_user', 'activity', 'created_timestamp', 'id', 'activity_type', )
+        allow_keys = ('kanojo', 'scanned', 'user', 'other_user', 'activity', 'created_timestamp', 'id', 'activity_type', 'activity_type2', )
         rv = { key: activity[key] for key in allow_keys if activity.has_key(key) }
 
         if user_id and rv.get('activity_type') == ACTIVITY_ME_STOLE_KANOJO and rv.get('other_user') == user_id:
@@ -159,6 +160,18 @@ class ActivityManager(object):
                 rv['activity'] = '{user_name} break up with {kanojo_name}.'
                 rv['activity_type'] = ACTIVITY_ME_ADD_FRIEND
                 rv['activity_type2'] = ACTIVITY_BREAKUP
+            elif ACTIVITY_ADD_AS_ENEMY == at:
+                rv['activity'] = '{user_name} added {other_user_name} as enemy.'
+        return rv
+
+    def activities_by_query(self, query, skip=0, limit=6, user_id=None):
+        if limit > -1:
+            iterator = self._db.activity.find(query).sort([('created_timestamp', -1), ('id', -1), ]).skip(skip).limit(limit)
+        else:
+            iterator = self._db.activity.find(query).sort([('created_timestamp', -1), ('id', -1), ]).skip(skip)
+        rv = []
+        for a in iterator:
+            rv.append(self.clear(a, clear=CLEAR_SELF, user_id=user_id))
         return rv
 
     def user_activity(self, user_id, skip=0, limit=6):
@@ -179,12 +192,44 @@ class ActivityManager(object):
                     }
                 ],
             }
-            if limit > -1:
-                iterator = self._db.activity.find(query).sort([('created_timestamp', -1), ('id', -1), ]).skip(skip).limit(limit)
-            else:
-                iterator = self._db.activity.find(query).sort([('created_timestamp', -1), ('id', -1), ]).skip(skip)
-            for a in iterator:
-                rv.append(self.clear(a, clear=CLEAR_SELF, user_id=user_id))
+            rv = self.activities_by_query(query, skip=skip, limit=limit, user_id=user_id)
+        return rv
+
+    def user_activities_4html(self, user_id, skip=0, limit=6):
+        rv = []
+        if self._db:
+            activity_types = copy.copy(list(ALL_ACTIVITIES))
+            activity_types.remove(ACTIVITY_APPROACH_KANOJO)
+            activity_types.remove(ACTIVITY_JOINED)
+            activity_types.append(ACTIVITY_ADD_AS_ENEMY)
+            query = {
+                '$or': [
+                    {
+                        'user': user_id,
+                        'activity_type': { '$in': activity_types },
+                    },
+                    {
+                        'other_user': user_id,
+                        'activity_type': { '$in': [ACTIVITY_APPROACH_KANOJO, ACTIVITY_ME_STOLE_KANOJO, ACTIVITY_ME_ADD_FRIEND] },
+                    }
+                ],
+            }
+            rv = self.activities_by_query(query, skip=skip, limit=limit, user_id=user_id)
+        return rv
+
+    def kanojo_activities_4html(self, kanojo_id, skip=0, limit=6):
+        rv = []
+        if self._db:
+            activity_types = copy.copy(list(ALL_ACTIVITIES))
+            query = {
+                '$or': [
+                    {
+                        'kanojo': kanojo_id,
+                        'activity_type': { '$in': activity_types },
+                    }
+                ],
+            }
+            rv = self.activities_by_query(query, skip=skip, limit=limit)
         return rv
 
     def all_activities(self, skip=0, limit=20, since_id=0):
@@ -193,17 +238,13 @@ class ActivityManager(object):
             activity_types = copy.copy(list(ALL_ACTIVITIES))
             activity_types.remove(ACTIVITY_APPROACH_KANOJO)
             activity_types.remove(ACTIVITY_SCAN)
+            activity_types.append(ACTIVITY_ADD_AS_ENEMY)
             query = {
                 'activity_type': { '$in': activity_types },
             }
             if since_id > 0:
                 query['id'] = { '$gt': since_id }
-            if limit > -1:
-                iterator = self._db.activity.find(query).sort([('created_timestamp', -1), ('id', -1), ]).skip(skip).limit(limit)
-            else:
-                iterator = self._db.activity.find(query).sort([('created_timestamp', -1), ('id', -1), ]).skip(skip)
-            for a in iterator:
-                rv.append(self.clear(a, clear=CLEAR_SELF))
+            rv = self.activities_by_query(query, skip=skip, limit=limit)
         return rv
 
     def kanojo_ids(self, activities):
@@ -270,6 +311,42 @@ class ActivityManager(object):
         activities = self.fill_format_activities(activities, fill_type=fill_type)
         return activities
 
+    def time_diff(self, tm):
+        '@ x day ago'
+        return ''
+        return '@ %d seconds ago'%tm
+
+    def create_html_block(self, activities_filled):
+        if len(activities_filled) == 0:
+            return '<h1 class="msg_small_alert">No activitities.</h1>'
+
+        rv = ''
+        tm = int(time.time())
+        for a in activities_filled:
+            # <div class="activities_box" id="activity70"><div class="l_activities_box"><a href="/user/2.html"><img class="icon" height="50" width="50" src="http://gdrive-cdn.herokuapp.com/5594f233507a7e0009dfdd2b/2.jpg"></a></div><div class="r_activities_box"><a href="/kanojo/1.html"><img class="icon" height="50" width="50" src="http://gdrive-cdn.herokuapp.com/549987b3cd22cc00070385a9/best_girl.png"></a></div><div class="c_activities_box"><span html="true"><a href="/user/2.html">Red Pear</a> added <a href="/kanojo/1.html">ヴェルデ</a> to friend list.</span><br><span id="activity70_time" value="1436440765">@ 1 day ago</span></div></div>
+            # LEFT
+            if a.get('activity_type') in [ACTIVITY_GENERATED, ACTIVITY_MY_KANOJO_STOLEN, ]:
+                (url, img) =  (a.get('kanojo_url'), a.get('kanojo', {}).get('profile_image_url'))
+            elif a.get('activity_type') in [ACTIVITY_APPROACH_KANOJO, ACTIVITY_MY_KANOJO_ADDED_TO_FRIENDS, ]:
+                (url, img) =  (a.get('other_user_url'), a.get('other_user', {}).get('profile_image_url'))
+            else:
+                (url, img) =  (a.get('user_url'), ''+a.get('user', {}).get('profile_image_url'))
+            tmp = '<div class="l_activities_box"><a href="%s"><img class="icon" height="50" width="50" src="%s"></a></div>'%(url, img)
+
+            # RIGHT 
+            if a.get('activity_type') in [ACTIVITY_ME_ADD_FRIEND, ACTIVITY_ME_STOLE_KANOJO, ACTIVITY_BREAKUP, ACTIVITY_APPROACH_KANOJO, ACTIVITY_MY_KANOJO_ADDED_TO_FRIENDS, ]:
+                (url, img) =  (a.get('kanojo_url'), a.get('kanojo', {}).get('profile_image_url'))
+            elif a.get('activity_type') in [ACTIVITY_ADD_AS_ENEMY, ACTIVITY_MY_KANOJO_STOLEN, ]:
+                (url, img) =  (a.get('other_user_url'), ''+a.get('other_user', {}).get('profile_image_url'))
+            else:
+                (url, img) = None, None
+            if url:
+                tmp += '<div class="r_activities_box"><a href="%s"><img class="icon" height="50" width="50" src="%s"></a></div>'%(url, img)
+
+            # CENTER
+            tmp += '<div class="c_activities_box"><span html="true">%s</span><br><span id="activity%d_time" value="%d">%s</span></div>'%(a.get('activity').decode('utf-8'), a.get('id'), a.get('created_timestamp'), self.time_diff(tm - a.get('created_timestamp')))
+            rv += '<div class="activities_box" id="activity%d">%s</div>'%(a.get('id'), tmp)
+        return rv
 
 
 if __name__ == "__main__":

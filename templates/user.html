@@ -5,6 +5,16 @@
 		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 		<title>Barcode KANOJO: {{ name }} Profile</title>
 		<link rel="stylesheet" href="{{ url_for('static', filename='css/common.css') }}">
+		<script src="{{ url_for('static', filename='js/common.js') }}"></script>
+		<script type="text/javascript">//<![CDATA[
+function ready() {
+	console.log(Math.round(new Date().getTime()/1000.0));
+	update_time(document.getElementById("maincontent").getElementsByClassName('activities_box'));
+	window.setTimeout(ready, 60 * 1000);
+};
+
+document.addEventListener("DOMContentLoaded", ready);
+//]]>	</script>
 	</head>
 	<body>
 		<div id="maincontent">
@@ -31,11 +41,15 @@
 							</tr>
 							<tr valign="top" class="stripe">
 								<td width="35%" class="user_info" style="color:#AAA;">Enemies</td>
-								<td width="65%" class="user_info">{{ enemies| length }}</td>
+								<td width="65%" class="user_info">{{ enemy_count }}</td>
 							</tr>
 							<tr valign="top">
 								<td width="35%" class="user_info" style="color:#AAA;">Kanojos</td>
-								<td width="65%" class="user_info">{{ kanojos| length }}</td>
+								<td width="65%" class="user_info">{{ kanojo_count }}</td>
+							</tr>
+							<tr valign="top">
+								<td width="35%" class="user_info" style="color:#AAA;">Friend Kanojos</td>
+								<td width="65%" class="user_info">{{ friend_count }}</td>
 							</tr>
 						</tbody></table>
 					</td>
@@ -46,11 +60,23 @@
 {% if len_zero(kanojos) %}<div class="msg_small_alert">User doesn't have kanojos.</div>{% else %}
 {% for k in kanojos %}{% if is_dict(k) %}			<span>
 				<a href="/kanojo/{{ k.id }}.html">
-					<img class="icon" src="{{ k.profile_image_url }}" alt="{{ k.name }}" border="0" width="50">
+					<img class="icon" src="{{ k.profile_image_url }}" alt="{{ k.name }}" style="width: 50px; height: 50px;">
 				</a>
 			</span>
 {% endif %}{% endfor %}
 {% endif %}
+			<h1 class="corner_name">Enemies</h1>
+{% if len_zero(enemies) %}<div class="msg_small_alert">User doesn't have enemies.</div>{% else %}
+{% for e in enemies %}{% if is_dict(e) %}			<span>
+				<a href="/user/{{ e.id }}.html">
+					<img class="icon" src="{{ e.profile_image_url }}" alt="{{ e.name }}" style="width: 50px; height: 50px;">
+				</a>
+			</span>
+{% endif %}{% endfor %}
+{% endif %}
+
+			<h1 class="corner_name">Latest activities</h1>
+{{ activities_html | safe }}
 		</div>
 	</body>
 </html>

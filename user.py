@@ -10,7 +10,7 @@ import time
 import config
 import math
 import copy
-from activity import ActivityManager, ACTIVITY_SCAN, ACTIVITY_GENERATED, ACTIVITY_ME_ADD_FRIEND, ACTIVITY_APPROACH_KANOJO, ACTIVITY_ME_STOLE_KANOJO, ACTIVITY_MY_KANOJO_STOLEN, ACTIVITY_MY_KANOJO_ADDED_TO_FRIENDS, ACTIVITY_BECOME_NEW_LEVEL, ACTIVITY_MARRIED, ACTIVITY_JOINED, ACTIVITY_BREAKUP
+from activity import ActivityManager, ACTIVITY_SCAN, ACTIVITY_GENERATED, ACTIVITY_ME_ADD_FRIEND, ACTIVITY_APPROACH_KANOJO, ACTIVITY_ME_STOLE_KANOJO, ACTIVITY_MY_KANOJO_STOLEN, ACTIVITY_MY_KANOJO_ADDED_TO_FRIENDS, ACTIVITY_BECOME_NEW_LEVEL, ACTIVITY_MARRIED, ACTIVITY_JOINED, ACTIVITY_BREAKUP, ACTIVITY_ADD_AS_ENEMY
 import random
 from collections import OrderedDict
 
@@ -98,7 +98,7 @@ class UserManager(object):
                 #"kanojo_count": 351,
                 "kanojos": [],
                 "friends": [],
-                "enemys": [],
+                "enemies": [],
                 "likes": [],
                 # ----
                 #"stamina_recover_index": (tm % 86400) / 60
@@ -125,7 +125,7 @@ class UserManager(object):
 
     @property
     def default_user(self):
-        return {"generate_count": 0, "description": "", "language": "ja", "level": 1, "kanojo_count": 0, "money": 100, "birth_month": 10, "stamina_max": 100, "facebook_connect": False, "profile_image_url": None, "sex": "no sure", "stamina": 100, "money_max": 100, "twitter_connect": False, "scan_count": 0, "birth_day": 25, "enemy_count": 0, "wish_count": 0, "id": 0, "name": 'Unknown'}
+        return {"generate_count": 0, "description": "", "language": "ja", "level": 1, "kanojo_count": 0, "money": 100, "birth_month": 10, "stamina_max": 100, "facebook_connect": False, "profile_image_url": None, "sex": "no sure", "stamina": 100, "money_max": 100, "twitter_connect": False, "scan_count": 0, "birth_day": 25, "enemy_count": 0, "wish_count": 0, "id": 0, "name": 'unknown'}
 
     def fill_fields(self, usr):
         usr['stamina_max'] = (usr.get('level', 0) + 9) * 10
@@ -135,7 +135,7 @@ class UserManager(object):
         usr['birth_year'] = dt.tm_year
         usr['kanojo_count'] = len(usr.get('kanojos', []))
         usr['friend_count'] = len(usr.get('friends', []))
-        usr['enemy_count'] = len(usr.get('enemys', []))
+        usr['enemy_count'] = len(usr.get('enemies', []))
         if not usr.get('profile_image_url'):
             usr['profile_image_url'] = 'http://bk-dump.herokuapp.com/images/common/no_pictire_available.png'
         return usr
@@ -161,7 +161,7 @@ class UserManager(object):
                 else:
                     self_user = self.user(uid=self_uid, clear=CLEAR_NONE)
             if self_user:
-                rv['relation_status'] = 2 if self_user.get('id')==tmp_user.get('id') else 3 if tmp_user.get('id') in self_user.get('enemys') else 1
+                rv['relation_status'] = 2 if self_user.get('id')==tmp_user.get('id') else 3 if tmp_user.get('id') in self_user.get('enemies') else 1
             return OrderedDict(sorted(rv.items(), cmp=user_order_dict_cmp))
 
     def user(self, uuid=None, uid=None, self_uid=None, self_user=None, clear=CLEAR_SELF):
@@ -220,6 +220,28 @@ class UserManager(object):
                         'other_user': kanojo.get('owner_user_id')
                     })
 
+    def add_user_as_enemy(self, user, enemy_user_or_id=0, update_db_record=False):
+        enemy_uid = enemy_user_or_id
+        if isinstance(enemy_uid, dict):
+            enemy_uid = enemy_uid.get('id', 0)
+        rv = False
+        if enemy_uid > 0:
+            enemies = user.get('enemies', [])
+            if enemy_uid not in enemies:
+                enemies.insert(0, enemy_uid)
+                user['enemies'] = enemies
+                rv = True
+                if update_db_record:
+                    self.save(user)
+
+                if self.activity_manager:
+                    self.activity_manager.create({
+                            'activity_type': ACTIVITY_ADD_AS_ENEMY,
+                            'user': user,
+                            'other_user': enemy_uid,
+                        })
+        return rv
+
     def create_kanojo_from_barcode(self, user, barcode_info, kanojo_name, crop_url, full_url=None):
         if user.get('stamina') < 20:
             return False
@@ -233,8 +255,8 @@ class UserManager(object):
             #k.append(kanojo.get('id'))
             k.insert(0, kanojo.get('id'))
             user['kanojos'] = k
-            self.increment_scan_couner(user)
-            self.user_change(user, stamina_change=20, money_change=-100, update_db_record=True)
+            self.user_change(user, stamina_change=20, money_change=-100, update_db_record=False)
+            self.increment_scan_couner(user, update_db_record=True)
 
             if self.activity_manager:
                 self.activity_manager.create({
@@ -419,10 +441,13 @@ class UserManager(object):
     def check_approached_kanojo(self, user, kanojo, kanojo_love_increment_info, current_owner=None):
         if kanojo is None:
             return None
-        # if user stole kanojo
+        # if action at not my kanojo
         if user.get('id') != kanojo.get('owner_user_id'):
             #print user, kanojo, kanojo_love_increment_info
             if not kanojo_love_increment_info.get('busy') and self.activity_manager:
+
+                self.add_user_as_enemy(user, kanojo.get('owner_user_id'))
+
                 self.activity_manager.create({
                         'activity_type': ACTIVITY_APPROACH_KANOJO,
                         'user': user,

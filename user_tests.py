@@ -32,7 +32,7 @@ class UserTest(unittest.TestCase):
             "generate_count": 0,
             "profile_image_url": "http://www.deviantsart.com/2oo69ib.jpg",
             "birthday": 1413025200,
-            "enemys": [],
+            "enemies": [],
             "password": None,
             "friends": [231, 31, 149, 333, 335, 336, 337, 339, 30, 220, 361],
             "tickets": 20,
